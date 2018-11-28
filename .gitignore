@@ -2,6 +2,12 @@
 *.apk
 *.ap_
 
+#Mac Files
+*.DS_Store
+
+#Android Studio Files
+.idea/
+
 # Files for the ART/Dalvik VM
 *.dex
 
