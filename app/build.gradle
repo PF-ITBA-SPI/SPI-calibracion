@@ -23,6 +23,8 @@ android {
 }
 
 ext {
+    retrofit_version = '2.3.0'
+    okhttp3_version = '3.8.1'
     rxandroid_version = '2.0.1'
     rxkotlin_version = '2.1.0'
 }
@@ -39,7 +41,18 @@ dependencies {
     implementation "io.reactivex.rxjava2:rxandroid:$rxandroid_version"
     //ReactiveJava for Kotlin
     implementation "io.reactivex.rxjava2:rxkotlin:$rxkotlin_version"
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.21'
     //UI Elements
     implementation 'com.android.support:cardview-v7:27.1.1'
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+    //For online requests
+    implementation "com.squareup.retrofit2:retrofit:$retrofit_version"
+    //ReactiveJava adapter for Retrofit
+    implementation "com.squareup.retrofit2:adapter-rxjava2:$retrofit_version"
+    //JSON parser adapter for retrofit
+    implementation "com.squareup.retrofit2:converter-moshi:$retrofit_version"
+    //Simpler requests
+    implementation "com.squareup.okhttp3:okhttp:$okhttp3_version"
+    //Request Logger
+    implementation "com.squareup.okhttp3:logging-interceptor:$okhttp3_version"
 }
