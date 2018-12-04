@@ -1,4 +1,4 @@
-package itba.edu.ar.spi_android_app.utils
+package itba.edu.ar.spi_android_app.utils.reactive
 
 import android.app.Activity
 import android.support.v4.widget.SwipeRefreshLayout
@@ -7,6 +7,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.rxkotlin.Observables
 import io.reactivex.schedulers.Schedulers
+import itba.edu.ar.spi_android_app.utils.stopUI
 
 fun <T> Observable<T>.onUI(): Observable<T> =
         this.observeOn(AndroidSchedulers.mainThread())
