@@ -1,8 +1,11 @@
 apply plugin: 'com.android.application'
-
 apply plugin: 'kotlin-android'
-
 apply plugin: 'kotlin-android-extensions'
+
+// Add secrets from secrets file, thanks to https://medium.com/@geocohn/keeping-your-android-projects-secrets-secret-393b8855765d
+def secretsFile = rootProject.file("secrets.properties")
+def secrets = new Properties()
+secrets.load(new FileInputStream(secretsFile)) // If this fails, you're missing the secrets.properties file in project root, ask someone else for the file (NEVER EVER COMMIT IT)
 
 android {
     compileSdkVersion 27
@@ -13,6 +16,10 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        // Add secrets from secrets file to build config
+        // buildConfigField("String", "maps_api_key", secrets['maps_api_key'])
+        // Add secret as resource string (this was adapted from https://developers.google.com/maps/documentation/android-sdk/map-with-marker)
+        resValue "string", "maps_api_key", secrets['maps_api_key']
     }
     buildTypes {
         release {
@@ -44,7 +51,7 @@ dependencies {
 
     //ReactiveJava for Kotlin
     implementation "io.reactivex.rxjava2:rxkotlin:$rxkotlin_version"
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.21'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.27.0-eap13'
     //UI Elements
     implementation 'com.android.support:cardview-v7:27.1.1'
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
@@ -66,4 +73,7 @@ dependencies {
 
     //Pretty Logger
     implementation 'com.orhanobut:logger:2.1.1'
+
+    // Google Maps
+    implementation 'com.google.android.gms:play-services-maps:16.0.0'
 }
