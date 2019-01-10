@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Activities.mapActivity.fragments.MapFragment">
+
+    <fragment
+        class="com.google.android.gms.maps.SupportMapFragment"
+        android:id="@+id/mapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
+
+    <fragment
+        class="itba.edu.ar.spi_android_app.Activities.mapActivity.fragments.StatusIndicatorFragment"
+        android:id="@+id/statusIndicatorFragment"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@id/mapFragment"
+        android:layout_alignTop="@id/mapFragment"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="60dp"
+        />
+
+    <fragment
+        class="itba.edu.ar.spi_android_app.Activities.mapActivity.fragments.FloorSelectorFragment"
+        android:id="@+id/floorSelectorFragment"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@id/mapFragment"
+        android:layout_alignBottom="@id/mapFragment"
+        android:layout_marginEnd="15dp"
+        android:layout_marginBottom="15dp"
+        />
+
+</RelativeLayout>
