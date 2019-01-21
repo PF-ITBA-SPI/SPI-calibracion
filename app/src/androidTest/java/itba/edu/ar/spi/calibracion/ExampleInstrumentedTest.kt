@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getTargetContext()
-        assertEquals("itba.edu.ar.spi_android_app", appContext.packageName)
+        assertEquals("itba.edu.ar.spi.calibracion", appContext.packageName)
     }
 }
