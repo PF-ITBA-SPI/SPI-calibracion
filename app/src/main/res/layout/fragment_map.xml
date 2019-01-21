@@ -13,7 +13,7 @@
         />
 
     <fragment
-        class="itba.edu.ar.spi.calibracion.Activities.mapActivity.fragments.StatusIndicatorFragment"
+        class="ar.edu.itba.spi.calibracion.Activities.mapActivity.fragments.StatusIndicatorFragment"
         android:id="@+id/statusIndicatorFragment"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -24,7 +24,7 @@
         />
 
     <fragment
-        class="itba.edu.ar.spi.calibracion.Activities.mapActivity.fragments.FloorSelectorFragment"
+        class="ar.edu.itba.spi.calibracion.Activities.mapActivity.fragments.FloorSelectorFragment"
         android:id="@+id/floorSelectorFragment"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
