@@ -1,4 +1,4 @@
-package itba.edu.ar.spi_android_app.Activities.mapActivity.fragments
+package itba.edu.ar.spi.calibracion.Activities.mapActivity.fragments
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -20,9 +20,9 @@ import android.widget.Toast
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.*
 import com.orhanobut.logger.Logger
-import itba.edu.ar.spi_android_app.Activities.mapActivity.MapViewModel
-import itba.edu.ar.spi_android_app.R
-import itba.edu.ar.spi_android_app.utils.TAG
+import itba.edu.ar.spi.calibracion.Activities.mapActivity.MapViewModel
+import itba.edu.ar.spi.calibracion.R
+import itba.edu.ar.spi.calibracion.utils.TAG
 
 
 // TODO: Rename parameter arguments, choose names that match

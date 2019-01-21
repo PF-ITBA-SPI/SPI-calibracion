@@ -1,4 +1,4 @@
-package itba.edu.ar.spi_android_app.Activities.mapActivity
+package itba.edu.ar.spi.calibracion.Activities.mapActivity
 
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel

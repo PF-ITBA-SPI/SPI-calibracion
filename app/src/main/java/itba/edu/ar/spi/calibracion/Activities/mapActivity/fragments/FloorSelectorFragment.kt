@@ -1,4 +1,4 @@
-package itba.edu.ar.spi_android_app.Activities.mapActivity.fragments
+package itba.edu.ar.spi.calibracion.Activities.mapActivity.fragments
 
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
@@ -12,9 +12,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.LinearLayout
-import itba.edu.ar.spi_android_app.Activities.mapActivity.MapViewModel
-import itba.edu.ar.spi_android_app.R
-import itba.edu.ar.spi_android_app.utils.TAG
+import itba.edu.ar.spi.calibracion.Activities.mapActivity.MapViewModel
+import itba.edu.ar.spi.calibracion.R
+import itba.edu.ar.spi.calibracion.utils.TAG
 
 /**
  * A fragment with a Google +1 button.

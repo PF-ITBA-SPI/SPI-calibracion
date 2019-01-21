@@ -1,4 +1,4 @@
-package itba.edu.ar.spi_android_app
+package itba.edu.ar.spi.calibracion
 
 import org.junit.Test
 
