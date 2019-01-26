@@ -60,18 +60,18 @@ class LoginActivity : AppCompatActivity() {
         var focusView: View? = null
 
         // Check for a valid password, if the user entered one.
-        if (!isPasswordValid(passwordStr)) {
+        if (false && !isPasswordValid(passwordStr)) {
             password.error = getString(R.string.error_invalid_password)
             focusView = password
             cancel = true
         }
 
         // Check for a valid username.
-        if (TextUtils.isEmpty(usernameStr)) {
+        if (false && TextUtils.isEmpty(usernameStr)) {
             username.error = getString(R.string.error_field_required)
             focusView = username
             cancel = true
-        } else if (!isUsernameValid(usernameStr)) {
+        } else if (false && !isUsernameValid(usernameStr)) {
             username.error = getString(R.string.error_invalid_username)
             focusView = username
             cancel = true
@@ -144,8 +144,11 @@ class LoginActivity : AppCompatActivity() {
      */
     inner class UserLoginTask internal constructor(private val mEmail: String, private val mPassword: String) : AsyncTask<Void, Void, Boolean>() {
 
+        @Suppress("UNREACHABLE_CODE")
         override fun doInBackground(vararg params: Void): Boolean? {
             // TODO: attempt authentication against a network service.
+
+            return true
 
             try {
                 // Simulate network access.
