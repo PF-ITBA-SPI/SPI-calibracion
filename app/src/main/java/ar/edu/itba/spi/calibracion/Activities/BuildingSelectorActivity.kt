@@ -1,11 +1,14 @@
 package ar.edu.itba.spi.calibracion.Activities
 
+import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import ar.edu.itba.spi.calibracion.Activities.map.EXTRA_BUILDING_ID
+import ar.edu.itba.spi.calibracion.Activities.map.MapActivity
 import ar.edu.itba.spi.calibracion.R
 import kotlinx.android.synthetic.main.activity_building_selector.*
 
@@ -22,6 +25,10 @@ class BuildingSelectorActivity : AppCompatActivity(), AdapterView.OnItemSelected
         adapter.addAll("ITBA Madero", "ITBA Patricios", "Edificio X") // TODO get these from network
         buildings_spinner.adapter = adapter
         buildings_spinner.onItemSelectedListener = this
+
+        button.setOnClickListener {
+            startActivity(Intent(this, MapActivity::class.java).apply { putExtra(EXTRA_BUILDING_ID, selectedBuildingName) })
+        }
     }
 
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
