@@ -3,6 +3,7 @@ package ar.edu.itba.spi.calibracion.Activities
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.annotation.TargetApi
+import android.content.Intent
 import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
@@ -168,7 +169,7 @@ class LoginActivity : AppCompatActivity() {
             showProgress(false)
 
             if (success!!) {
-                finish()
+                startActivity(Intent(this@LoginActivity, BuildingSelectorActivity::class.java))
             } else {
                 password.error = getString(R.string.error_incorrect_password)
                 password.requestFocus()
