@@ -10,7 +10,7 @@ secrets.load(new FileInputStream(secretsFile)) // If this fails, you're missing 
 android {
     compileSdkVersion 27
     defaultConfig {
-        applicationId "itba.edu.ar.spi_android_app"
+        applicationId "ar.edu.itba.spi.calibracion"
         minSdkVersion 18
         targetSdkVersion 27
         versionCode 1
