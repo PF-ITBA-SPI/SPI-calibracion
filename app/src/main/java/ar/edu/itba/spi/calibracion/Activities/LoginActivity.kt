@@ -40,7 +40,7 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
      */
     private var mAuthTask: UserLoginTask? = null
 
-    // Make call disposable so we can cancel requests in case of app destruction with pending requests
+    // Use Disposable for API calls so we can cancel pending requests on destroy
     private var disposable: Disposable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
