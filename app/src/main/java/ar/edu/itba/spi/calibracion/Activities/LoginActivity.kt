@@ -1,28 +1,16 @@
 package ar.edu.itba.spi.calibracion.Activities
 
-import android.Manifest.permission.READ_CONTACTS
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.annotation.TargetApi
-import android.app.LoaderManager.LoaderCallbacks
-import android.content.CursorLoader
-import android.content.Loader
-import android.content.pm.PackageManager
-import android.database.Cursor
-import android.net.Uri
 import android.content.Intent
 import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
-import android.provider.ContactsContract
-import android.support.design.widget.Snackbar
-import android.support.v7.app.AppCompatActivity
 import android.support.v7.app.AppCompatActivity
 import android.text.TextUtils
 import android.util.Log
 import android.view.View
-import android.view.inputmethod.EditorInfo
-import android.widget.TextView
 import ar.edu.itba.spi.calibracion.R
 import ar.edu.itba.spi.calibracion.api.clients.PingClient
 import ar.edu.itba.spi.calibracion.api.defaultRetrofitInstance
@@ -31,7 +19,6 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_login.*
-import java.util.*
 
 /**
  * A login screen that offers login via email/password.
