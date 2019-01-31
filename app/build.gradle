@@ -30,8 +30,7 @@ android {
 }
 
 ext {
-    retrofit_version = '2.3.0'
-    okhttp3_version = '3.8.1'
+    retrofit_version = '2.5.0'
     rxandroid_version = '2.0.1'
     rxkotlin_version = '2.1.0'
 }
@@ -69,12 +68,8 @@ dependencies {
 
     //JSON parser adapter for retrofit
     implementation "com.squareup.retrofit2:converter-moshi:$retrofit_version"
-
-    //Simpler requests
-    implementation "com.squareup.okhttp3:okhttp:$okhttp3_version"
-
-    //Request Logger
-    implementation "com.squareup.okhttp3:logging-interceptor:$okhttp3_version"
+    // Scalars parser (string, etc.)
+    implementation "com.squareup.retrofit2:converter-scalars:$retrofit_version"
 
     //Pretty Logger
     implementation 'com.orhanobut:logger:2.1.1'
