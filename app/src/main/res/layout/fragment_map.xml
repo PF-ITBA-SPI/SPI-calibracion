@@ -31,7 +31,18 @@
         android:layout_alignEnd="@id/mapFragment"
         android:layout_alignBottom="@id/mapFragment"
         android:layout_marginEnd="15dp"
+        android:layout_marginBottom="90dp" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@id/mapFragment"
+        android:layout_alignBottom="@id/mapFragment"
+        android:layout_marginEnd="30dp"
         android:layout_marginBottom="15dp"
-        />
+        android:clickable="true"
+        android:focusable="true"
+        android:src="@android:drawable/ic_menu_add" />
 
 </RelativeLayout>
