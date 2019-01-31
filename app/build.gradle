@@ -68,6 +68,8 @@ dependencies {
 
     //JSON parser adapter for retrofit
     implementation "com.squareup.retrofit2:converter-moshi:$retrofit_version"
+    // Scalars parser (string, etc.)
+    implementation "com.squareup.retrofit2:converter-scalars:$retrofit_version"
 
     //Pretty Logger
     implementation 'com.orhanobut:logger:2.1.1'
