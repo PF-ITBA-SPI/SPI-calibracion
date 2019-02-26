@@ -45,6 +45,7 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
     private val ITBA = LatLng(-34.602895, -58.368002)
     private val ITBA_NE = LatLng(-34.602866, -58.367693)
     private val ITBA_SW = LatLng(-34.604082, -58.367838)
+    private val ITBA_SE = LatLng(-34.604064, -58.367540)
     private var map: GoogleMap? = null
     private lateinit var model: MapViewModel
 
@@ -72,7 +73,9 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
             groundOverlay.remove()
             Log.d(TAG, "Adding new ground overlay...")
             groundOverlay = map!!.addGroundOverlay(GroundOverlayOptions()
-                    .positionFromBounds(LatLngBounds(ITBA_SW, ITBA_NE))
+                    .position(ITBA_SE, 100f)
+                    .bearing(84f)
+                    .anchor(1f, 0f)
                     .image(BitmapDescriptorFactory.fromResource(floorPlanResourceId(floorNumber!!)))
             )
         })
@@ -112,7 +115,9 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
             // TODO set these based on buildingId
             map.moveCamera(CameraUpdateFactory.newCameraPosition((CameraPosition(ITBA, 18f, 0f, 0f))))
             groundOverlay = map.addGroundOverlay(GroundOverlayOptions()
-                    .positionFromBounds(LatLngBounds(ITBA_SW, ITBA_NE))
+                    .position(ITBA_SE, 100f)
+                    .bearing(84f)
+                    .anchor(1f, 0f)
                     .image(BitmapDescriptorFactory.fromResource(floorPlanResourceId(1)))
 //                    .anchor(0f, 0f)
             )
