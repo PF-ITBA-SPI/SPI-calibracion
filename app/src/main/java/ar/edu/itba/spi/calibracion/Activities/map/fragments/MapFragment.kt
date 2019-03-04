@@ -42,7 +42,10 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
     private val RequestFineLocationPermission = 42
 
     private var listener: OnFragmentInteractionListener? = null
-    private val ITBA = LatLng(-34.603500, -58.367791)
+    private val ITBA = LatLng(-34.602895, -58.368002)
+    private val ITBA_NE = LatLng(-34.602866, -58.367693)
+    private val ITBA_SW = LatLng(-34.604082, -58.367838)
+    private val ITBA_SE = LatLng(-34.604064, -58.367540)
     private var map: GoogleMap? = null
     private lateinit var model: MapViewModel
 
@@ -70,7 +73,9 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
             groundOverlay.remove()
             Log.d(TAG, "Adding new ground overlay...")
             groundOverlay = map!!.addGroundOverlay(GroundOverlayOptions()
-                    .position(ITBA, 100f)
+                    .position(ITBA_SE, 100f)
+                    .bearing(84f)
+                    .anchor(1f, 0f)
                     .image(BitmapDescriptorFactory.fromResource(floorPlanResourceId(floorNumber!!)))
             )
         })
@@ -110,7 +115,9 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
             // TODO set these based on buildingId
             map.moveCamera(CameraUpdateFactory.newCameraPosition((CameraPosition(ITBA, 18f, 0f, 0f))))
             groundOverlay = map.addGroundOverlay(GroundOverlayOptions()
-                    .position(ITBA, 100f)
+                    .position(ITBA_SE, 100f)
+                    .bearing(84f)
+                    .anchor(1f, 0f)
                     .image(BitmapDescriptorFactory.fromResource(floorPlanResourceId(1)))
 //                    .anchor(0f, 0f)
             )
@@ -214,9 +221,9 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
      */
     private fun floorPlanResourceId(floorNum: Int): Int {
         return when (floorNum) {
-            1 -> R.drawable.plano1
-            2 -> R.drawable.plano2
-            3 -> R.drawable.plano3
+            1 -> R.drawable.pb
+            2 -> R.drawable.pb
+            3 -> R.drawable.pb
             else -> -1
         }
     }
