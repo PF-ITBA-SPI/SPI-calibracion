@@ -9,6 +9,7 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.net.Uri
 import android.os.Bundle
+import android.support.design.widget.FloatingActionButton
 import android.support.v4.app.ActivityCompat
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
@@ -36,7 +37,7 @@ import ar.edu.itba.spi.calibracion.R
  * create an instance of this mapFragment.
  *
  */
-class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMyLocationClickListener, OnMapReadyCallback, GoogleMap.OnIndoorStateChangeListener {
+class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMyLocationClickListener, OnMapReadyCallback, GoogleMap.OnIndoorStateChangeListener, View.OnClickListener {
     // TODO: Rename and change types of parameters
     private lateinit var buildingId: String
     private val RequestFineLocationPermission = 42
@@ -90,6 +91,15 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
         floorSelectorFragment = childFragmentManager.findFragmentById(R.id.floorSelectorFragment) as FloorSelectorFragment
         statusIndicatorFragment = childFragmentManager.findFragmentById(R.id.statusIndicatorFragment) as StatusIndicatorFragment
         return result
+    }
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        val view = getView()
+        if(view != null) {
+            val fab = view.findViewById(R.id.fab) as FloatingActionButton
+            fab.setOnClickListener(this);
+        }
     }
 
     override fun onMapReady(map: GoogleMap) {
@@ -193,6 +203,18 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
                         putString(EXTRA_BUILDING_ID, buildingId)
                     }
                 }
+    }
+
+    override fun onClick(v: View){
+        when (v.id) {
+            R.id.fab -> {
+                map?.let {
+                    val target = it.cameraPosition.target
+                    Logger.i(target.latitude.toString())
+                    Toast.makeText(this.context, "Calibration Submited", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
     }
 
     override fun onIndoorBuildingFocused() {
