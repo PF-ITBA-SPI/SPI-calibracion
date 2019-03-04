@@ -3,8 +3,7 @@
     package="ar.edu.itba.spi.calibracion">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <!-- To listen to network changes -->
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /> <!-- To react to network changes -->
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
@@ -14,6 +13,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
@@ -23,14 +23,18 @@
 
         <activity
             android:name=".Activities.LoginActivity"
+            android:label="@string/title_activity_login"
             android:launchMode="singleTask"
-            android:screenOrientation="portrait"
-            android:label="@string/title_activity_login">
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity android:name=".Activities.BuildingSelectorActivity"></activity>
+        <activity android:name=".Activities.map.MapActivity"></activity>
     </application>
 
 </manifest>
