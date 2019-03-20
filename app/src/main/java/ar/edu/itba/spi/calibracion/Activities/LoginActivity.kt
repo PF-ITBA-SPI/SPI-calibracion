@@ -12,9 +12,9 @@ import android.text.TextUtils
 import android.util.Log
 import android.view.View
 import ar.edu.itba.spi.calibracion.R
+import ar.edu.itba.spi.calibracion.api.ApiSingleton
 import ar.edu.itba.spi.calibracion.api.clients.BuildingsClient
 import ar.edu.itba.spi.calibracion.api.clients.PingClient
-import ar.edu.itba.spi.calibracion.api.defaultRetrofitInstance
 import ar.edu.itba.spi.calibracion.utils.TAG
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
@@ -40,10 +40,10 @@ class LoginActivity : AppCompatActivity() {
 
         sign_in_button.setOnClickListener { attemptLogin() }
 
-        val retrofit = defaultRetrofitInstance
-        val pingclient = retrofit.create(PingClient::class.java)
+        val retrofit = ApiSingleton.getInstance(this).defaultRetrofitInstance
+        val pingClient = retrofit.create(PingClient::class.java)
         // API call, observed, with before-launch task https://medium.com/@elye.project/kotlin-and-retrofit-2-tutorial-with-working-codes-333a4422a890
-        pingDisposable = pingclient
+        pingDisposable = pingClient
                 .ping()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -54,7 +54,7 @@ class LoginActivity : AppCompatActivity() {
                 )
 
         val buildingsClient = retrofit.create(BuildingsClient::class.java)
-        pingDisposable = buildingsClient
+        buildingsDisposable = buildingsClient
                 .list()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
