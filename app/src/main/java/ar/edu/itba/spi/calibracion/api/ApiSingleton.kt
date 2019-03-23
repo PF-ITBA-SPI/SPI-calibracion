@@ -16,8 +16,7 @@ import java.security.KeyFactory
 import java.security.spec.PKCS8EncodedKeySpec
 
 
-//const val API_BASE_URL = "https://pf-itba-spi.herokuapp.com"
-const val API_BASE_URL = "http://192.168.1.100:4000"
+const val API_BASE_URL = "https://pf-itba-spi.herokuapp.com"
 
 /**
  * API singleton which is lazily initialized with a [Context] when necessary.
