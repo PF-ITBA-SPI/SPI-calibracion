@@ -20,7 +20,7 @@ import java.security.spec.PKCS8EncodedKeySpec
 const val API_BASE_URL = "http://192.168.1.100:4000"
 
 /**
- * API singleton which is lazily initialized with a context when necessary.
+ * API singleton which is lazily initialized with a [Context] when necessary.
  */
 class ApiSingleton private constructor(context: Context) {
     private val jwt: String

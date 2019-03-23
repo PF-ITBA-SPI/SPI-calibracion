@@ -10,6 +10,9 @@ open class SingletonHolder<out T, in A>(creator: (A) -> T) {
     private var creator: ((A) -> T)? = creator
     @Volatile private var instance: T? = null
 
+    /**
+     * Get the instance of this singleton, or initialize with `arg` if necessary.
+     */
     fun getInstance(arg: A): T {
         val i = instance
         if (i != null) {
