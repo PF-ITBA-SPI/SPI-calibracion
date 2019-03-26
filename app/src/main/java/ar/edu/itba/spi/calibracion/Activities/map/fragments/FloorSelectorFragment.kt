@@ -44,7 +44,7 @@ class FloorSelectorFragment : Fragment() {
         model = activity?.run {
             ViewModelProviders.of(this).get(MapViewModel::class.java)
         } ?: throw Exception("Invalid Activity")
-        model.floorNumbers.value = mutableListOf(1, 2, 3) // TODO get this from current building
+        model.floorNumbers.value = mutableListOf(0, 1, 2, 3) // TODO get this from current building
         model.floorNumbers.observe(this, Observer<List<Int>>{ floors ->
             // Update UI
             this.clear()

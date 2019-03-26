@@ -98,7 +98,7 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
         val view = getView()
         if(view != null) {
             val fab = view.findViewById(R.id.fab) as FloatingActionButton
-            fab.setOnClickListener(this);
+            fab.setOnClickListener(this)
         }
     }
 
@@ -243,9 +243,10 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
      */
     private fun floorPlanResourceId(floorNum: Int): Int {
         return when (floorNum) {
-            1 -> R.drawable.pb
-            2 -> R.drawable.pb
-            3 -> R.drawable.pb
+            0 -> R.drawable.planta_baja
+            1 -> R.drawable.p1
+            2 -> R.drawable.p2
+            3 -> R.drawable.p3
             else -> -1
         }
     }
