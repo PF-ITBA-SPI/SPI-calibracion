@@ -20,6 +20,7 @@ android {
         // buildConfigField("String", "maps_api_key", secrets['maps_api_key'])
         // Add secret as resource string (this was adapted from https://developers.google.com/maps/documentation/android-sdk/map-with-marker)
         resValue "string", "maps_api_key", secrets['maps_api_key']
+        resValue "string", "api_private_key", secrets['api_private_key']
     }
     buildTypes {
         release {
@@ -76,4 +77,13 @@ dependencies {
 
     // Google Maps
     implementation 'com.google.android.gms:play-services-maps:16.0.0'
+
+    // JWTs
+    api 'io.jsonwebtoken:jjwt-api:0.10.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.10.5'
+    runtimeOnly('io.jsonwebtoken:jjwt-orgjson:0.10.5') {
+        exclude group: 'org.json', module: 'json' //provided by Android natively
+    }
+    // Uncomment the next line if you want to use RSASSA-PSS (PS256, PS384, PS512) algorithms:
+    //runtimeOnly 'org.bouncycastle:bcprov-jdk15on:1.60'
 }
