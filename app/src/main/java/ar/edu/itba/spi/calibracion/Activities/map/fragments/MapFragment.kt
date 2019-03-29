@@ -243,7 +243,7 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
      */
     private fun floorPlanResourceId(floorNum: Int): Int {
         return when (floorNum) {
-            0 -> R.drawable.planta_baja
+            0 -> R.drawable.p0
             1 -> R.drawable.p1
             2 -> R.drawable.p2
             3 -> R.drawable.p3
