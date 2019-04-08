@@ -18,13 +18,17 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import ar.edu.itba.spi.calibracion.Activities.map.EXTRA_BUILDING_ID
-import ar.edu.itba.spi.calibracion.utils.TAG
-import com.google.android.gms.maps.*
-import com.google.android.gms.maps.model.*
-import com.orhanobut.logger.Logger
+import ar.edu.itba.spi.calibracion.Activities.map.EXTRA_BUILDING
 import ar.edu.itba.spi.calibracion.Activities.map.MapViewModel
 import ar.edu.itba.spi.calibracion.R
+import ar.edu.itba.spi.calibracion.api.models.Building
+import ar.edu.itba.spi.calibracion.utils.TAG
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.*
+import com.orhanobut.logger.Logger
 
 /**
  * Main positioning fragment.  Includes a Google Maps fragment, a [FloorSelectorFragment] to
@@ -39,7 +43,6 @@ import ar.edu.itba.spi.calibracion.R
  */
 class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMyLocationClickListener, OnMapReadyCallback, GoogleMap.OnIndoorStateChangeListener, View.OnClickListener {
     // TODO: Rename and change types of parameters
-    private lateinit var buildingId: String
     private val RequestFineLocationPermission = 42
 
     private var listener: OnFragmentInteractionListener? = null
@@ -57,26 +60,28 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
 
     private lateinit var groundOverlay: GroundOverlay // TODO make this a map of floor number to GroundOverlay
 
+    private lateinit var building: Building
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            buildingId = it.getString(EXTRA_BUILDING_ID)
+            building = it.getSerializable(EXTRA_BUILDING) as Building
         }
-
-        Log.d(TAG, "Started map super-fragment with building ID $buildingId")
+        Log.d(TAG, "Started map super-fragment with building ID ${building._id}")
 
         model = activity?.run {
             ViewModelProviders.of(this).get(MapViewModel::class.java)
         } ?: throw Exception("Invalid Activity")
+        model.floors.value = building.floors
         model.selectedFloorNumber.observe(this, Observer<Int>{ floorNumber ->
-            Log.d(TAG, "Selected floor #$floorNumber! From MapFragment.")
+            Log.d(TAG, "Selected floor #$floorNumber")
             Log.d(TAG, "Removing ground overlay...")
             groundOverlay.remove()
             Log.d(TAG, "Adding new ground overlay...")
             groundOverlay = map!!.addGroundOverlay(GroundOverlayOptions()
-                    .position(ITBA_SE, 100f)
-                    .bearing(84f)
-                    .anchor(1f, 0f)
+                    .position(LatLng(building.getDefaultOverlay().latitude!!, building.getDefaultOverlay().longitude!!), building.getDefaultOverlay().width!!.toFloat())
+                    .bearing(building.getDefaultOverlay().bearing!!.toFloat())
+                    .anchor(building.getDefaultOverlay().anchorX!!.toFloat(), building.getDefaultOverlay().anchorY!!.toFloat())
                     .image(BitmapDescriptorFactory.fromResource(floorPlanResourceId(floorNumber!!)))
             )
         })
@@ -192,15 +197,15 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
          * Use this factory method to create a new instance of
          * this mapFragment using the provided parameters.
          *
-         * @param buildingId ID of building to start focused on.
+         * @param building Building to start focused on.
          * @return A new instance of mapFragment MapFragment.
          */
         // TODO: Rename and change types and number of parameters
         @JvmStatic
-        fun newInstance(buildingId: String) =
+        fun newInstance(building: Building) =
                 MapFragment().apply {
                     arguments = Bundle().apply {
-                        putString(EXTRA_BUILDING_ID, buildingId)
+                        putSerializable(EXTRA_BUILDING, building)
                     }
                 }
     }

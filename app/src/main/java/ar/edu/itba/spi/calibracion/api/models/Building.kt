@@ -1,8 +1,9 @@
 package ar.edu.itba.spi.calibracion.api.models
 
 import com.google.gson.annotations.SerializedName
+import java.io.Serializable
 
-class Building {
+class Building: Serializable {
     @SerializedName("_id")
     var _id: String? = null
 
@@ -23,6 +24,14 @@ class Building {
 
     @SerializedName("defaultFloorId")
     var defaultFloorId: String? = null
+
+    fun getDefaultFloor(): Floor {
+        return floors?.first { f -> defaultFloorId == f._id }!!
+    }
+
+    fun getDefaultOverlay(): Overlay {
+        return getDefaultFloor().overlay!!
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

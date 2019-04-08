@@ -14,6 +14,7 @@ import android.widget.Button
 import android.widget.LinearLayout
 import ar.edu.itba.spi.calibracion.Activities.map.MapViewModel
 import ar.edu.itba.spi.calibracion.R
+import ar.edu.itba.spi.calibracion.api.models.Floor
 import ar.edu.itba.spi.calibracion.utils.TAG
 
 /**
@@ -44,8 +45,7 @@ class FloorSelectorFragment : Fragment() {
         model = activity?.run {
             ViewModelProviders.of(this).get(MapViewModel::class.java)
         } ?: throw Exception("Invalid Activity")
-        model.floorNumbers.value = mutableListOf(0, 1, 2, 3, 4, 5, 6, 7) // TODO get this from current building
-        model.floorNumbers.observe(this, Observer<List<Int>>{ floors ->
+        model.floors.observe(this, Observer<List<Floor>>{ floors ->
             // Update UI
             this.clear()
             this.setFloors(floors!!)
@@ -64,18 +64,18 @@ class FloorSelectorFragment : Fragment() {
      * Creates a floor selector button, with style and a click handler that updates the fragment's
      * and viewModel's selected floor number.
      */
-    private fun button(floorNumber: Int): Button {
+    private fun button(floor: Floor): Button {
         val result = Button(this.context)
         result.width = 50
         result.height = 50
-        result.tag = floorNumber // Find buttons by tag, not ID
-        result.text = floorNumber.toString()
+        result.tag = floor // Find buttons by tag, not ID
+        result.text = floor.name
         result.setOnClickListener { clickedView ->
             selectedButton?.isPressed = false
             selectedButton = clickedView as Button
             selectedButton!!.isPressed = true
-            model.selectedFloorNumber.value = floorNumber
-            Log.d(TAG, "Clicked on floor #$floorNumber! From FloorSelectorFragment")
+            model.selectedFloorNumber.value = floor.number
+            Log.d(TAG, "Clicked on floor #$floor! From FloorSelectorFragment")
         }
         return result
     }
@@ -89,15 +89,14 @@ class FloorSelectorFragment : Fragment() {
         buttons.clear()
     }
 
-    private fun setFloors(floors: List<Int>) {
+    private fun setFloors(floors: List<Floor>) {
         floors
-                .sorted()
-                .reversed() // Vertical linear layout goes from top to bottom, so first button has to be the one with the highest floor number
+                .sortedByDescending { f -> f.number } // Vertical linear layout goes from top to bottom, so first button has to be the one with the highest floor number
                 .forEach { floor ->
-            val newButton = button(floor)
-            buttons.add(newButton)
-            layout.addView(newButton)
-        }
+                    val newButton = button(floor)
+                    buttons.add(newButton)
+                    layout.addView(newButton)
+                }
     }
 
     // TODO: Rename method, update argument and hook method into UI event

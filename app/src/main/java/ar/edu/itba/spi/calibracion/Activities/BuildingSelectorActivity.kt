@@ -7,7 +7,7 @@ import android.util.Log
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import ar.edu.itba.spi.calibracion.Activities.map.EXTRA_BUILDING_ID
+import ar.edu.itba.spi.calibracion.Activities.map.EXTRA_BUILDING
 import ar.edu.itba.spi.calibracion.Activities.map.MapActivity
 import ar.edu.itba.spi.calibracion.R
 import ar.edu.itba.spi.calibracion.api.ApiSingleton
@@ -50,7 +50,7 @@ class BuildingSelectorActivity : AppCompatActivity(), AdapterView.OnItemSelected
         buildings_spinner.emptyView = buildings_placeholder
 
         button.setOnClickListener {
-            startActivity(Intent(this, MapActivity::class.java).apply { putExtra(EXTRA_BUILDING_ID, selectedBuilding!!._id) })
+            startActivity(Intent(this, MapActivity::class.java).apply { putExtra(EXTRA_BUILDING, selectedBuilding!!) })
         }
     }
 

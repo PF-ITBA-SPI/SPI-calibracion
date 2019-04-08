@@ -1,8 +1,9 @@
 package ar.edu.itba.spi.calibracion.api.models
 
 import com.google.gson.annotations.SerializedName
+import java.io.Serializable
 
-class Floor {
+class Floor: Serializable {
     @SerializedName("_id")
     var _id: String? = null
 
@@ -10,7 +11,7 @@ class Floor {
     var name: String? = null
 
     @SerializedName("number")
-    val number: Integer? = null
+    val number: Int? = null
 
     @SerializedName("overlay")
     val overlay: Overlay? = null
