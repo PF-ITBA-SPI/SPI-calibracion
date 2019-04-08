@@ -16,6 +16,7 @@ import ar.edu.itba.spi.calibracion.api.ApiSingleton
 import ar.edu.itba.spi.calibracion.api.clients.BuildingsClient
 import ar.edu.itba.spi.calibracion.api.clients.PingClient
 import ar.edu.itba.spi.calibracion.utils.TAG
+import com.bumptech.glide.Glide
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
@@ -60,7 +61,20 @@ class LoginActivity : AppCompatActivity() {
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnSubscribe { Log.d(TAG, "GET /buildings") }
                 .subscribe(
-                        { result -> Log.d(TAG, result) },
+                        { result -> run {
+                            val a = Glide
+                                    .with(this)
+                                    .asBitmap()
+                                    .load(result[0].floors!![0].overlay!!.url)
+                                    .submit()
+                            Log.d(TAG, "Downloading image from ${result[0].floors!![0].overlay!!.url}")
+                            AsyncTask.execute {
+                                a.get()
+                                Log.d(TAG, "Image download complete!")
+                            }
+                            Log.d(TAG, result.map { b -> b.toString()}.reduce { acc: String, s: String -> "$acc,$s" })
+                            }
+                        },
                         { error -> Log.e(TAG, error.message) }
                 )
     }

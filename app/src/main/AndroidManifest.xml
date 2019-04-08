@@ -3,8 +3,11 @@
     package="ar.edu.itba.spi.calibracion">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /> <!-- To react to network changes -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- To react to network changes. Glide also uses this permission -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- To cache images in SD card if possible -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
