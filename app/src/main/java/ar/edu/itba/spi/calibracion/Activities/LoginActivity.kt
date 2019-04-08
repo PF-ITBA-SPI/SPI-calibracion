@@ -60,7 +60,7 @@ class LoginActivity : AppCompatActivity() {
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnSubscribe { Log.d(TAG, "GET /buildings") }
                 .subscribe(
-                        { result -> Log.d(TAG, result) },
+                        { result -> Log.d(TAG, result.map { b -> b.toString()}.reduce { acc: String, s: String -> "$acc,$s" }) },
                         { error -> Log.e(TAG, error.message) }
                 )
     }

@@ -10,7 +10,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Response
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
-import retrofit2.converter.moshi.MoshiConverterFactory
+import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
 import java.security.KeyFactory
 import java.security.spec.PKCS8EncodedKeySpec
@@ -57,7 +57,7 @@ class ApiSingleton private constructor(context: Context) {
 
     /**
      * Default Retrofit builder. Uses [API_BASE_URL], [RxJava2CallAdapterFactory] to work with observables,
-     * and [ScalarsConverterFactory] to work with scalars (plain strings, etc.) and [MoshiConverterFactory]
+     * and [ScalarsConverterFactory] to work with scalars (plain strings, etc.) and [GsonConverterFactory]
      * to work with JSON.  Also uses [the default HTTP client][httpClient].
      */
     private val defaultRetrofitBuilder: Retrofit.Builder by lazy {
@@ -65,7 +65,7 @@ class ApiSingleton private constructor(context: Context) {
                 .baseUrl(API_BASE_URL)
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())  // Adapt calls to RXJava (observables, etc.)
                 .addConverterFactory(ScalarsConverterFactory.create())      // Work with plain strings, ints, etc.
-                .addConverterFactory(MoshiConverterFactory.create())        // Work with JSON
+                .addConverterFactory(GsonConverterFactory.create())        // Work with JSON
                 .client(httpClient)
     }
 
