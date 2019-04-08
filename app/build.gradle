@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
 
 // Add secrets from secrets file, thanks to https://medium.com/@geocohn/keeping-your-android-projects-secrets-secret-393b8855765d
 def secretsFile = rootProject.file("secrets.properties")
@@ -87,4 +88,8 @@ dependencies {
     }
     // Uncomment the next line if you want to use RSASSA-PSS (PS256, PS384, PS512) algorithms:
     //runtimeOnly 'org.bouncycastle:bcprov-jdk15on:1.60'
+
+    // Glide for image management (download, caching, etc.)
+    implementation "com.github.bumptech.glide:glide:4.9.0"
+    kapt "com.github.bumptech.glide:compiler:4.9.0"
 }
