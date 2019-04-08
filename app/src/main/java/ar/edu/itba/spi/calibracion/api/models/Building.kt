@@ -40,7 +40,7 @@ class Building {
     }
 
     override fun toString(): String {
-        return "$name - $_id"
+        return "$name"
     }
 }
 

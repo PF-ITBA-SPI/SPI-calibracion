@@ -1,8 +1,8 @@
 package ar.edu.itba.spi.calibracion.Activities
 
 import android.content.Intent
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
 import android.widget.AdapterView
@@ -10,35 +10,58 @@ import android.widget.ArrayAdapter
 import ar.edu.itba.spi.calibracion.Activities.map.EXTRA_BUILDING_ID
 import ar.edu.itba.spi.calibracion.Activities.map.MapActivity
 import ar.edu.itba.spi.calibracion.R
+import ar.edu.itba.spi.calibracion.api.ApiSingleton
+import ar.edu.itba.spi.calibracion.api.clients.BuildingsClient
+import ar.edu.itba.spi.calibracion.api.models.Building
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_building_selector.*
 
 class BuildingSelectorActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
-    var selectedBuildingName: String? = null
+    private var buildingsDisposable: Disposable? = null
+    private var selectedBuilding: Building? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_building_selector)
 
         // Create an adapter to populate and style the spinner
-        val adapter = ArrayAdapter<String>(this, android.R.layout.simple_spinner_item)
+        val adapter = ArrayAdapter<Building>(this, android.R.layout.simple_spinner_item)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        adapter.addAll("ITBA Madero", "ITBA Patricios", "Edificio X") // TODO get these from network
+
+        val buildingsClient = ApiSingleton.getInstance(this).defaultRetrofitInstance.create(BuildingsClient::class.java)
+        buildingsDisposable = buildingsClient
+                .list()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnSubscribe { Log.d(ar.edu.itba.spi.calibracion.utils.TAG, "GET /buildings") }
+                .subscribe(
+                        { result -> run {
+                                adapter.clear()
+                                adapter.addAll(result)
+                                adapter.notifyDataSetChanged()
+                            }
+                        },
+                        { error -> Log.e(ar.edu.itba.spi.calibracion.utils.TAG, error.message) }
+                )
         buildings_spinner.adapter = adapter
         buildings_spinner.onItemSelectedListener = this
+        buildings_spinner.emptyView = buildings_placeholder
 
         button.setOnClickListener {
-            startActivity(Intent(this, MapActivity::class.java).apply { putExtra(EXTRA_BUILDING_ID, selectedBuildingName) })
+            startActivity(Intent(this, MapActivity::class.java).apply { putExtra(EXTRA_BUILDING_ID, selectedBuilding!!._id) })
         }
     }
 
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-        selectedBuildingName = parent!!.getItemAtPosition(position) as String
+        selectedBuilding = parent!!.getItemAtPosition(position) as Building
         button.isEnabled = true
-        Log.d(ar.edu.itba.spi.calibracion.utils.TAG, "Selected $selectedBuildingName")
+        Log.d(ar.edu.itba.spi.calibracion.utils.TAG, "Selected $selectedBuilding")
     }
 
     override fun onNothingSelected(parent: AdapterView<*>?) {
-        selectedBuildingName = null
+        selectedBuilding = null
         button.isEnabled = false
         Log.d(ar.edu.itba.spi.calibracion.utils.TAG, "Selected nothing!")
     }

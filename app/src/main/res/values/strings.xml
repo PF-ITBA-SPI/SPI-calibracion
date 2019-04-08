@@ -18,4 +18,5 @@
     <!-- Map activity -->
     <string name="unknown_location_icon">Unknown location icon</string>
     <string name="offline_indicator_icon">Offline indicator icon</string>
+    <string name="loading_buildings">Loading buildings…</string>
 </resources>
