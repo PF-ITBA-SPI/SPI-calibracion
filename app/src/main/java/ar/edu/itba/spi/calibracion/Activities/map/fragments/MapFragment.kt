@@ -38,6 +38,7 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.GroundOverlay
 import com.google.android.gms.maps.model.IndoorBuilding
+import com.google.android.gms.maps.model.Marker
 import com.orhanobut.logger.Logger
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
@@ -72,6 +73,7 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
 
     private lateinit var building: Building
     private var samples: MutableCollection<Sample> = mutableListOf()
+    private val markers = HashMap<Int, MutableList<Marker>>()
 
     private lateinit var samplesClient: SamplesClient
     private var samplesDisposable: Disposable? = null
@@ -89,7 +91,10 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
         } ?: throw Exception("Invalid Activity")
         // Set floors and listen to floor changes
         model.floors.value = building.floors
-        model.selectedFloorNumber.observe(this, Observer<Int> { floorNumber -> switchOverlay(floorNumber!!) })
+        model.selectedFloorNumber.observe(this, Observer<Int> { floorNumber ->
+            switchOverlay(floorNumber!!)
+            switchMarkers(floorNumber)
+        })
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -118,30 +123,31 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
             Before enabling the My Location layer, we MUST have been granted location permission by
             the user.
          */
-        if (ContextCompat.checkSelfPermission(this.context!!, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            map.isMyLocationEnabled = true
-            map.uiSettings.isMyLocationButtonEnabled = true
-//            map.isBuildingsEnabled = true
-//            map.isBuildingsEnabled = false
-            map.isIndoorEnabled = true
-            map.isTrafficEnabled = false
-            map.setOnMyLocationButtonClickListener(this)
-            map.setOnMyLocationClickListener(this)
-            map.setOnIndoorStateChangeListener(this)
-            map.uiSettings.isIndoorLevelPickerEnabled = true
-            map.mapType = GoogleMap.MAP_TYPE_NORMAL
-
-            map.moveCamera(CameraUpdateFactory.newCameraPosition((CameraPosition(buildingLatLng(building), building.zoom!!.toFloat(), 0f, 0f))))
-            val floorNum = building.getDefaultFloor().number!!
-            model.selectedFloorNumber.value = floorNum
-        } else {
+        if (ContextCompat.checkSelfPermission(this.context!!, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // Show rationale and request permission.
             Logger.w("Location permission not granted, requesting")
             ActivityCompat.requestPermissions(this.activity!!,
                     arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                     RequestFineLocationPermission)
+            return
         }
+
+        // Configure map
+        map.isMyLocationEnabled = true
+        map.uiSettings.isMyLocationButtonEnabled = true
+//            map.isBuildingsEnabled = true
+//            map.isBuildingsEnabled = false
+        map.isIndoorEnabled = true
+        map.isTrafficEnabled = false
+        map.setOnMyLocationButtonClickListener(this)
+        map.setOnMyLocationClickListener(this)
+        map.setOnIndoorStateChangeListener(this)
+        map.uiSettings.isIndoorLevelPickerEnabled = true
+        map.mapType = GoogleMap.MAP_TYPE_NORMAL
+
+        // Start map: Move camera to starting position, set default floor number (this will trigger overlay and marker updates)
+        map.moveCamera(CameraUpdateFactory.newCameraPosition((CameraPosition(buildingLatLng(building), building.zoom!!.toFloat(), 0f, 0f))))
+        model.selectedFloorNumber.value = building.getDefaultFloor().number!!
 
         // Query existing samples and draw them on the map
         samplesClient = ApiSingleton.getInstance(context!!).defaultRetrofitInstance.create(SamplesClient::class.java)
@@ -153,7 +159,7 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
                 .subscribe(
                         { result -> run {
                                 samples.addAll(result)
-                                samples.forEach { sample -> map.addMarker(gMapsMarkerOptions(sample)).tag = sample }
+                                mapSamplesToMarkers(samples)
                             }
                         },
                         { error -> Log.e(ar.edu.itba.spi.calibracion.utils.TAG, "Error getting samples: ${error.message}") }
@@ -197,6 +203,23 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
     }
 
     /**
+     * Map [Sample]s to Google Maps' markers, populating [markers] as appropriate. Set initial
+     * visibility of markers according to the selected floor.
+     */
+    private fun mapSamplesToMarkers(samples: Collection<Sample>) {
+        activity?.runOnUiThread {
+            samples.forEach { sample ->
+                val markerOptions = gMapsMarkerOptions(sample)
+                val marker = map!!.addMarker(markerOptions)
+                marker.tag = sample
+                val sampleFloorNumber = building.floors!!.find { f -> f._id == sample.floorId }!!.number!!
+                marker.isVisible = sampleFloorNumber == model.selectedFloorNumber.value
+                markers.getOrPut(sampleFloorNumber) {mutableListOf()}.add(marker)
+            }
+        }
+    }
+
+    /**
      * Remove the current overlay, if any, and add the overlay of the specified floor number.
      * Downloads the overlay image in the background if necessary, and creates Maps' Overlay when
      * ready.
@@ -231,6 +254,19 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
             activeGroundOverlay = groundOverlays[floorNumber]
             activeGroundOverlay!!.isVisible = true
             model.isChangingOverlay.value = false
+        }
+    }
+
+    /**
+     * Iterate over all markers and set visible only those in the specified floor number.
+     *
+     * @param floorNumber The floor number of markers to make visible. All other floors will hide
+     * their markers.
+     */
+    private fun switchMarkers(floorNumber: Int) {
+        markers.entries.forEach { entry ->
+            val visible = floorNumber == entry.key
+            entry.value.forEach { m -> m.isVisible = visible }
         }
     }
 
