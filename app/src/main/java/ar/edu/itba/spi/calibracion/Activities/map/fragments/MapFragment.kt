@@ -22,18 +22,26 @@ import android.widget.Toast
 import ar.edu.itba.spi.calibracion.Activities.map.EXTRA_BUILDING
 import ar.edu.itba.spi.calibracion.Activities.map.MapViewModel
 import ar.edu.itba.spi.calibracion.R
+import ar.edu.itba.spi.calibracion.api.ApiSingleton
+import ar.edu.itba.spi.calibracion.api.clients.SamplesClient
 import ar.edu.itba.spi.calibracion.api.models.Building
+import ar.edu.itba.spi.calibracion.api.models.Sample
 import ar.edu.itba.spi.calibracion.utils.TAG
 import ar.edu.itba.spi.calibracion.utils.buildingLatLng
 import ar.edu.itba.spi.calibracion.utils.gMapsGroundOverlayOptions
+import ar.edu.itba.spi.calibracion.utils.gMapsMarkerOptions
 import com.bumptech.glide.Glide
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.*
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.GroundOverlay
+import com.google.android.gms.maps.model.IndoorBuilding
 import com.orhanobut.logger.Logger
-import java.lang.IllegalStateException
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
 
 /**
  * Main positioning fragment.  Includes a Google Maps fragment, a [FloorSelectorFragment] to
@@ -63,6 +71,10 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
     private var activeGroundOverlay: GroundOverlay? = null
 
     private lateinit var building: Building
+    private var samples: MutableCollection<Sample> = mutableListOf()
+
+    private lateinit var samplesClient: SamplesClient
+    private var samplesDisposable: Disposable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,9 +83,11 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
         }
         Log.d(TAG, "Started map super-fragment with building ID ${building._id}")
 
+        // Get shared view-model
         model = activity?.run {
             ViewModelProviders.of(this).get(MapViewModel::class.java)
         } ?: throw Exception("Invalid Activity")
+        // Set floors and listen to floor changes
         model.floors.value = building.floors
         model.selectedFloorNumber.observe(this, Observer<Int> { floorNumber -> switchOverlay(floorNumber!!) })
     }
@@ -127,6 +141,27 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
             ActivityCompat.requestPermissions(this.activity!!,
                     arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                     RequestFineLocationPermission)
+        }
+
+        // Query existing samples and draw them on the map
+        samplesClient = ApiSingleton.getInstance(context!!).defaultRetrofitInstance.create(SamplesClient::class.java)
+        samplesDisposable = samplesClient
+                .list(building._id!!)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnSubscribe { Log.d(ar.edu.itba.spi.calibracion.utils.TAG, "GET /buildings/${building._id}/samples") }
+                .subscribe(
+                        { result -> run {
+                                samples.addAll(result)
+                                samples.forEach { sample -> map.addMarker(gMapsMarkerOptions(sample)).tag = sample }
+                            }
+                        },
+                        { error -> Log.e(ar.edu.itba.spi.calibracion.utils.TAG, "Error getting samples: ${error.message}") }
+                )
+        // React to marker clicks
+        map.setOnMarkerClickListener { marker ->
+            Log.d(TAG, "Tapped on marker with ${(marker.tag as Sample)}")
+            false // Return false to indicate we have not consumed the event and default behavior should continue
         }
     }
 
