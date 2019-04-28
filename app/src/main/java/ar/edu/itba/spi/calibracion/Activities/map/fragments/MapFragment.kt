@@ -115,7 +115,9 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
             map.mapType = GoogleMap.MAP_TYPE_NORMAL
 
             map.moveCamera(CameraUpdateFactory.newCameraPosition((CameraPosition(building.getLocation(), building.zoom!!.toFloat(), 0f, 0f))))
-            switchOverlay(building.getDefaultFloor().number!!)
+            val floorNum = building.getDefaultFloor().number!!
+            model.selectedFloorNumber.value = floorNum
+            switchOverlay(floorNum)
         } else {
             // Show rationale and request permission.
             Logger.w("Location permission not granted, requesting")

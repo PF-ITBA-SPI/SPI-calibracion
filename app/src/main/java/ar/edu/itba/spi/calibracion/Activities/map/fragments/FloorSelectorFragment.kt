@@ -50,6 +50,10 @@ class FloorSelectorFragment : Fragment() {
             this.clear()
             this.setFloors(floors!!)
         })
+        model.selectedFloorNumber.observe(this, Observer<Int>{ selectedFloorNumber ->
+            // Disable button for selected floor, enable all others
+            buttons.forEach { b -> b.isEnabled = (b.tag as Floor).number!! != selectedFloorNumber }
+        })
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -65,19 +69,17 @@ class FloorSelectorFragment : Fragment() {
      * and viewModel's selected floor number.
      */
     private fun button(floor: Floor): Button {
-        val result = Button(this.context)
-        result.width = 50
-        result.height = 50
-        result.tag = floor // Find buttons by tag, not ID
-        result.text = floor.name
-        result.setOnClickListener { clickedView ->
-            selectedButton?.isPressed = false
+        val button = Button(this.context)
+        button.width = 50
+        button.height = 50
+        button.tag = floor // Find buttons by tag, not ID
+        button.text = floor.name
+        button.setOnClickListener { clickedView ->
             selectedButton = clickedView as Button
-            selectedButton!!.isPressed = true
             model.selectedFloorNumber.value = floor.number
-            Log.d(TAG, "Clicked on floor #$floor! From FloorSelectorFragment")
+            Log.d(TAG, "Selected floor #$floor")
         }
-        return result
+        return button
     }
 
     /**
