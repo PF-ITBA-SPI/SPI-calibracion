@@ -24,6 +24,8 @@ import ar.edu.itba.spi.calibracion.Activities.map.MapViewModel
 import ar.edu.itba.spi.calibracion.R
 import ar.edu.itba.spi.calibracion.api.models.Building
 import ar.edu.itba.spi.calibracion.utils.TAG
+import ar.edu.itba.spi.calibracion.utils.buildingLatLng
+import ar.edu.itba.spi.calibracion.utils.gMapsGroundOverlayOptions
 import com.bumptech.glide.Glide
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -114,7 +116,7 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
             map.uiSettings.isIndoorLevelPickerEnabled = true
             map.mapType = GoogleMap.MAP_TYPE_NORMAL
 
-            map.moveCamera(CameraUpdateFactory.newCameraPosition((CameraPosition(building.getLocation(), building.zoom!!.toFloat(), 0f, 0f))))
+            map.moveCamera(CameraUpdateFactory.newCameraPosition((CameraPosition(buildingLatLng(building), building.zoom!!.toFloat(), 0f, 0f))))
             val floorNum = building.getDefaultFloor().number!!
             model.selectedFloorNumber.value = floorNum
             switchOverlay(floorNum)
@@ -176,14 +178,8 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
             val overlayBitmap = downloadFuture.get()
             Log.d(TAG, "Overlay download complete!")
             Log.d(TAG, "Adding new ground overlay...")
-            activity?.runOnUiThread {
-                groundOverlay = map!!.addGroundOverlay(GroundOverlayOptions()
-                        .position(LatLng(building.getDefaultOverlay().latitude!!, building.getDefaultOverlay().longitude!!), building.getDefaultOverlay().width!!.toFloat())
-                        .bearing(building.getDefaultOverlay().bearing!!.toFloat())
-                        .anchor(building.getDefaultOverlay().anchorX!!.toFloat(), building.getDefaultOverlay().anchorY!!.toFloat())
-                        .image(BitmapDescriptorFactory.fromBitmap(overlayBitmap))
-                )
-            }
+            val overlayOptions = gMapsGroundOverlayOptions(building.getOverlayNumber(floorNumber), overlayBitmap)
+            activity?.runOnUiThread { groundOverlay = map!!.addGroundOverlay(overlayOptions) }
         }
     }
 

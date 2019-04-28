@@ -26,10 +26,6 @@ class Building: Serializable {
     @SerializedName("defaultFloorId")
     var defaultFloorId: String? = null
 
-    fun getLocation(): LatLng {
-        return LatLng(latitude!!, longitude!!)
-    }
-
     fun getDefaultFloor(): Floor {
         return floors?.first { f -> defaultFloorId == f._id }!!
     }
@@ -40,6 +36,13 @@ class Building: Serializable {
 
     fun getFloorNumber(number: Int): Floor? {
         return floors?.find { f -> f.number == number }
+    }
+
+    /**
+     * Gets the overlay for the floor with the specified number.
+     */
+    fun getOverlayNumber(floorNumber: Int): Overlay {
+        return getFloorNumber(floorNumber)!!.overlay!!
     }
 
     override fun equals(other: Any?): Boolean {
