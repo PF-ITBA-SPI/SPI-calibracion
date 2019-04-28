@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import android.net.Uri
+import android.os.AsyncTask
 import android.os.Bundle
 import android.support.design.widget.FloatingActionButton
 import android.support.v4.app.ActivityCompat
@@ -23,6 +24,7 @@ import ar.edu.itba.spi.calibracion.Activities.map.MapViewModel
 import ar.edu.itba.spi.calibracion.R
 import ar.edu.itba.spi.calibracion.api.models.Building
 import ar.edu.itba.spi.calibracion.utils.TAG
+import com.bumptech.glide.Glide
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -46,10 +48,6 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
     private val RequestFineLocationPermission = 42
 
     private var listener: OnFragmentInteractionListener? = null
-    private val ITBA = LatLng(-34.602895, -58.368002)
-    private val ITBA_NE = LatLng(-34.602866, -58.367693)
-    private val ITBA_SW = LatLng(-34.604082, -58.367838)
-    private val ITBA_SE = LatLng(-34.604064, -58.367540)
     private var map: GoogleMap? = null
     private lateinit var model: MapViewModel
 
@@ -58,7 +56,7 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
     private lateinit var floorSelectorFragment: FloorSelectorFragment
     private lateinit var statusIndicatorFragment: StatusIndicatorFragment
 
-    private lateinit var groundOverlay: GroundOverlay // TODO make this a map of floor number to GroundOverlay
+    private var groundOverlay: GroundOverlay? = null
 
     private lateinit var building: Building
 
@@ -73,18 +71,7 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
             ViewModelProviders.of(this).get(MapViewModel::class.java)
         } ?: throw Exception("Invalid Activity")
         model.floors.value = building.floors
-        model.selectedFloorNumber.observe(this, Observer<Int>{ floorNumber ->
-            Log.d(TAG, "Selected floor #$floorNumber")
-            Log.d(TAG, "Removing ground overlay...")
-            groundOverlay.remove()
-            Log.d(TAG, "Adding new ground overlay...")
-            groundOverlay = map!!.addGroundOverlay(GroundOverlayOptions()
-                    .position(LatLng(building.getDefaultOverlay().latitude!!, building.getDefaultOverlay().longitude!!), building.getDefaultOverlay().width!!.toFloat())
-                    .bearing(building.getDefaultOverlay().bearing!!.toFloat())
-                    .anchor(building.getDefaultOverlay().anchorX!!.toFloat(), building.getDefaultOverlay().anchorY!!.toFloat())
-                    .image(BitmapDescriptorFactory.fromResource(floorPlanResourceId(floorNumber!!)))
-            )
-        })
+        model.selectedFloorNumber.observe(this, Observer<Int> { floorNumber -> switchOverlay(floorNumber!!) })
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -127,15 +114,8 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
             map.uiSettings.isIndoorLevelPickerEnabled = true
             map.mapType = GoogleMap.MAP_TYPE_NORMAL
 
-            // TODO set these based on buildingId
-            map.moveCamera(CameraUpdateFactory.newCameraPosition((CameraPosition(ITBA, 18f, 0f, 0f))))
-            groundOverlay = map.addGroundOverlay(GroundOverlayOptions()
-                    .position(ITBA_SE, 100f)
-                    .bearing(84f)
-                    .anchor(1f, 0f)
-                    .image(BitmapDescriptorFactory.fromResource(floorPlanResourceId(1)))
-//                    .anchor(0f, 0f)
-            )
+            map.moveCamera(CameraUpdateFactory.newCameraPosition((CameraPosition(building.getLocation(), building.zoom!!.toFloat(), 0f, 0f))))
+            switchOverlay(building.getDefaultFloor().number!!)
         } else {
             // Show rationale and request permission.
             Logger.w("Location permission not granted, requesting")
@@ -167,13 +147,42 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
         if (context is OnFragmentInteractionListener) {
             listener = context
         } else {
-            throw RuntimeException(context.toString() + " must implement OnFragmentInteractionListener")
+            throw RuntimeException("$context must implement OnFragmentInteractionListener")
         }
     }
 
     override fun onDetach() {
         super.onDetach()
         listener = null
+    }
+
+    /**
+     * Remove the current overlay, if any, and add the overlay of the specified floor number.
+     * Downloads the overlay image in the background if necessary, and creates Maps' Overlay when
+     * ready.
+     */
+    private fun switchOverlay(floorNumber: Int) {
+        Log.d(TAG, "Removing ground overlay...")
+        groundOverlay?.remove()
+        Log.d(TAG, "Downloading ground overlay for floor #$floorNumber of ${building.name}...")
+        val downloadFuture = Glide
+                .with(this)
+                .asBitmap()
+                .load(building.getFloorNumber(floorNumber)!!.overlay!!.url)
+                .submit()
+        AsyncTask.execute {
+            val overlayBitmap = downloadFuture.get()
+            Log.d(TAG, "Overlay download complete!")
+            Log.d(TAG, "Adding new ground overlay...")
+            activity?.runOnUiThread {
+                groundOverlay = map!!.addGroundOverlay(GroundOverlayOptions()
+                        .position(LatLng(building.getDefaultOverlay().latitude!!, building.getDefaultOverlay().longitude!!), building.getDefaultOverlay().width!!.toFloat())
+                        .bearing(building.getDefaultOverlay().bearing!!.toFloat())
+                        .anchor(building.getDefaultOverlay().anchorX!!.toFloat(), building.getDefaultOverlay().anchorY!!.toFloat())
+                        .image(BitmapDescriptorFactory.fromBitmap(overlayBitmap))
+                )
+            }
+        }
     }
 
     /**
