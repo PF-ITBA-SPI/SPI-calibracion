@@ -33,6 +33,7 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.orhanobut.logger.Logger
+import java.lang.IllegalStateException
 
 /**
  * Main positioning fragment.  Includes a Google Maps fragment, a [FloorSelectorFragment] to
@@ -58,7 +59,8 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
     private lateinit var floorSelectorFragment: FloorSelectorFragment
     private lateinit var statusIndicatorFragment: StatusIndicatorFragment
 
-    private var groundOverlay: GroundOverlay? = null
+    private val groundOverlays = HashMap<Int, GroundOverlay>()
+    private var activeGroundOverlay: GroundOverlay? = null
 
     private lateinit var building: Building
 
@@ -119,7 +121,6 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
             map.moveCamera(CameraUpdateFactory.newCameraPosition((CameraPosition(buildingLatLng(building), building.zoom!!.toFloat(), 0f, 0f))))
             val floorNum = building.getDefaultFloor().number!!
             model.selectedFloorNumber.value = floorNum
-            switchOverlay(floorNum)
         } else {
             // Show rationale and request permission.
             Logger.w("Location permission not granted, requesting")
@@ -166,20 +167,35 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
      * ready.
      */
     private fun switchOverlay(floorNumber: Int) {
+        if (model.isChangingOverlay.value!!) {
+            throw IllegalStateException("Already changing overlays, can't change overlays again")
+        }
+        model.isChangingOverlay.value = true
         Log.d(TAG, "Removing ground overlay...")
-        groundOverlay?.remove()
-        Log.d(TAG, "Downloading ground overlay for floor #$floorNumber of ${building.name}...")
-        val downloadFuture = Glide
-                .with(this)
-                .asBitmap()
-                .load(building.getFloorNumber(floorNumber)!!.overlay!!.url)
-                .submit()
-        AsyncTask.execute {
-            val overlayBitmap = downloadFuture.get()
-            Log.d(TAG, "Overlay download complete!")
-            Log.d(TAG, "Adding new ground overlay...")
-            val overlayOptions = gMapsGroundOverlayOptions(building.getOverlayNumber(floorNumber), overlayBitmap)
-            activity?.runOnUiThread { groundOverlay = map!!.addGroundOverlay(overlayOptions) }
+        activeGroundOverlay?.isVisible = false
+        if (!groundOverlays.containsKey(floorNumber)) {
+            Log.d(TAG, "Downloading ground overlay for floor #$floorNumber of ${building.name}...")
+            val downloadFuture = Glide
+                    .with(this)
+                    .asBitmap()
+                    .load(building.getFloorNumber(floorNumber)!!.overlay!!.url)
+                    .submit()
+            AsyncTask.execute {
+                val overlayBitmap = downloadFuture.get()
+                Log.d(TAG, "Overlay download complete!")
+                Log.d(TAG, "Adding new ground overlay...")
+                val overlayOptions = gMapsGroundOverlayOptions(building.getOverlayNumber(floorNumber), overlayBitmap)
+                activity?.runOnUiThread {
+                    activeGroundOverlay = map!!.addGroundOverlay(overlayOptions)
+                    groundOverlays[floorNumber] = activeGroundOverlay!!
+                    model.isChangingOverlay.value = false
+                }
+            }
+        } else {
+            Log.d(TAG, "Adding cached ground overlay")
+            activeGroundOverlay = groundOverlays[floorNumber]
+            activeGroundOverlay!!.isVisible = true
+            model.isChangingOverlay.value = false
         }
     }
 

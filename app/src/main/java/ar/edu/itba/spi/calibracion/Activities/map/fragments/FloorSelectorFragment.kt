@@ -75,9 +75,13 @@ class FloorSelectorFragment : Fragment() {
         button.tag = floor // Find buttons by tag, not ID
         button.text = floor.name
         button.setOnClickListener { clickedView ->
-            selectedButton = clickedView as Button
-            model.selectedFloorNumber.value = floor.number
-            Log.d(TAG, "Selected floor #$floor")
+            if (!model.isChangingOverlay.value!!) {
+                selectedButton = clickedView as Button
+                model.selectedFloorNumber.value = floor.number
+                Log.d(TAG, "Selected floor #$floor")
+            } else {
+                Log.d(TAG, "Already switching overlays, ignoring floor #$floor click")
+            }
         }
         return button
     }

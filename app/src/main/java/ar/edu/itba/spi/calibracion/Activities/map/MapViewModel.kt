@@ -13,4 +13,5 @@ class MapViewModel : ViewModel() {
     var selectedFloorNumber = MutableLiveData<Int>()
     var isOffline = MutableLiveData<Boolean>().apply { value = false }
     var isLocationUnknown = MutableLiveData<Boolean>().apply { value = false }
+    var isChangingOverlay = MutableLiveData<Boolean>().apply { value = false }
 }
