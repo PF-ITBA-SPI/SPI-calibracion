@@ -1,8 +1,9 @@
 package ar.edu.itba.spi.calibracion.api.models
 
 import com.google.gson.annotations.SerializedName
+import java.io.Serializable
 
-class Overlay {
+class Overlay: Serializable {
     @SerializedName("_id")
     var _id: String? = null
 
