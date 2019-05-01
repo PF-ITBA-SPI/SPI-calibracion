@@ -21,6 +21,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import ar.edu.itba.spi.calibracion.R
+import ar.edu.itba.spi.calibracion.utils.TAG
 
 /**
  * A fragment which scans nearby WiFi networks.
@@ -41,9 +42,9 @@ class ScanFragment : Fragment() {
         override fun onReceive(context: Context, intent: Intent) {
             val success = intent.getBooleanExtra(WifiManager.EXTRA_RESULTS_UPDATED, false)
             if (success) {
-                Log.d("SCAN", wifiManager.scanResults.toString())
+                Log.d(TAG, wifiManager.scanResults.toString())
             } else {
-                Log.d("SCAN", "Scan Failed")
+                Log.d(TAG, "Scan Failed")
             }
         }
     }
@@ -66,12 +67,12 @@ class ScanFragment : Fragment() {
     }
 
     fun askPermissions(): Boolean {
-        Log.d("SCAN", "CHECKING PERMISSIONS")
+        Log.d(TAG, "CHECKING PERMISSIONS")
         if (ContextCompat.checkSelfPermission(activity as Activity, Manifest.permission.CHANGE_WIFI_STATE)
                 == PackageManager.PERMISSION_GRANTED) {
             return true;
         } else {
-            Log.d("SCAN", "ASKING FOR PERMISSIONS")
+            Log.d(TAG, "ASKING FOR PERMISSIONS")
             ActivityCompat.requestPermissions(this.activity!!,
                     arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                     MY_PERMISSIONS_REQUEST_CHANGE_WIFI_STATE)
@@ -103,7 +104,7 @@ class ScanFragment : Fragment() {
 
     fun startScanning() {
         if(askPermissions()){
-            Log.d("SCAN", "START SCAN")
+            Log.d(TAG, "START SCAN")
             wifiManager.startScan()
         }
         Handler().postDelayed({
