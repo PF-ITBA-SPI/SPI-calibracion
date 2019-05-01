@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
 
 // Add secrets from secrets file, thanks to https://medium.com/@geocohn/keeping-your-android-projects-secrets-secret-393b8855765d
 def secretsFile = rootProject.file("secrets.properties")
@@ -20,6 +21,7 @@ android {
         // buildConfigField("String", "maps_api_key", secrets['maps_api_key'])
         // Add secret as resource string (this was adapted from https://developers.google.com/maps/documentation/android-sdk/map-with-marker)
         resValue "string", "maps_api_key", secrets['maps_api_key']
+        resValue "string", "api_private_key", secrets['api_private_key']
     }
     buildTypes {
         release {
@@ -67,7 +69,8 @@ dependencies {
     implementation "com.squareup.retrofit2:adapter-rxjava2:$retrofit_version"
 
     //JSON parser adapter for retrofit
-    implementation "com.squareup.retrofit2:converter-moshi:$retrofit_version"
+    compile 'com.google.code.gson:gson:2.8.2'
+    compile 'com.squareup.retrofit2:converter-gson:2.0.2'
     // Scalars parser (string, etc.)
     implementation "com.squareup.retrofit2:converter-scalars:$retrofit_version"
 
@@ -76,4 +79,17 @@ dependencies {
 
     // Google Maps
     implementation 'com.google.android.gms:play-services-maps:16.0.0'
+
+    // JWTs
+    api 'io.jsonwebtoken:jjwt-api:0.10.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.10.5'
+    runtimeOnly('io.jsonwebtoken:jjwt-orgjson:0.10.5') {
+        exclude group: 'org.json', module: 'json' //provided by Android natively
+    }
+    // Uncomment the next line if you want to use RSASSA-PSS (PS256, PS384, PS512) algorithms:
+    //runtimeOnly 'org.bouncycastle:bcprov-jdk15on:1.60'
+
+    // Glide for image management (download, caching, etc.)
+    implementation "com.github.bumptech.glide:glide:4.9.0"
+    kapt "com.github.bumptech.glide:compiler:4.9.0"
 }

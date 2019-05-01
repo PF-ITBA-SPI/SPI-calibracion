@@ -9,6 +9,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.net.Uri
+import android.os.AsyncTask
 import android.os.Bundle
 import android.support.design.widget.FloatingActionButton
 import android.support.v4.app.ActivityCompat
@@ -20,14 +21,32 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import ar.edu.itba.spi.calibracion.Activities.BuildingSelectorActivity
-import ar.edu.itba.spi.calibracion.Activities.map.EXTRA_BUILDING_ID
+import ar.edu.itba.spi.calibracion.Activities.map.EXTRA_BUILDING
+import ar.edu.itba.spi.calibracion.Activities.map.MapViewModel
+import ar.edu.itba.spi.calibracion.R
+import ar.edu.itba.spi.calibracion.api.ApiSingleton
+import ar.edu.itba.spi.calibracion.api.clients.SamplesClient
+import ar.edu.itba.spi.calibracion.api.models.Building
+import ar.edu.itba.spi.calibracion.api.models.Sample
 import ar.edu.itba.spi.calibracion.utils.TAG
-import com.google.android.gms.maps.*
-import com.google.android.gms.maps.model.*
+import ar.edu.itba.spi.calibracion.utils.buildingLatLng
+import ar.edu.itba.spi.calibracion.utils.gMapsGroundOverlayOptions
+import ar.edu.itba.spi.calibracion.utils.gMapsMarkerOptions
+import com.bumptech.glide.Glide
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.GroundOverlay
+import com.google.android.gms.maps.model.IndoorBuilding
+import com.google.android.gms.maps.model.Marker
 import com.orhanobut.logger.Logger
 import ar.edu.itba.spi.calibracion.Activities.map.MapViewModel
 import ar.edu.itba.spi.calibracion.Activities.scan.ScanActivity
-import ar.edu.itba.spi.calibracion.R
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
 
 /**
  * Main positioning fragment.  Includes a Google Maps fragment, a [FloorSelectorFragment] to
@@ -42,14 +61,9 @@ import ar.edu.itba.spi.calibracion.R
  */
 class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMyLocationClickListener, OnMapReadyCallback, GoogleMap.OnIndoorStateChangeListener, View.OnClickListener {
     // TODO: Rename and change types of parameters
-    private lateinit var buildingId: String
     private val RequestFineLocationPermission = 42
 
     private var listener: OnFragmentInteractionListener? = null
-    private val ITBA = LatLng(-34.602895, -58.368002)
-    private val ITBA_NE = LatLng(-34.602866, -58.367693)
-    private val ITBA_SW = LatLng(-34.604082, -58.367838)
-    private val ITBA_SE = LatLng(-34.604064, -58.367540)
     private var map: GoogleMap? = null
     private lateinit var model: MapViewModel
 
@@ -58,30 +72,32 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
     private lateinit var floorSelectorFragment: FloorSelectorFragment
     private lateinit var statusIndicatorFragment: StatusIndicatorFragment
 
-    private lateinit var groundOverlay: GroundOverlay // TODO make this a map of floor number to GroundOverlay
+    private val groundOverlays = HashMap<Int, GroundOverlay>()
+    private var activeGroundOverlay: GroundOverlay? = null
+
+    private lateinit var building: Building
+    private var samples: MutableCollection<Sample> = mutableListOf()
+    private val markers = HashMap<Int, MutableList<Marker>>()
+
+    private lateinit var samplesClient: SamplesClient
+    private var samplesDisposable: Disposable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            buildingId = it.getString(EXTRA_BUILDING_ID)
+            building = it.getSerializable(EXTRA_BUILDING) as Building
         }
+        Log.d(TAG, "Started map super-fragment with building ID ${building._id}")
 
-        Log.d(TAG, "Started map super-fragment with building ID $buildingId")
-
+        // Get shared view-model
         model = activity?.run {
             ViewModelProviders.of(this).get(MapViewModel::class.java)
         } ?: throw Exception("Invalid Activity")
-        model.selectedFloorNumber.observe(this, Observer<Int>{ floorNumber ->
-            Log.d(TAG, "Selected floor #$floorNumber! From MapFragment.")
-            Log.d(TAG, "Removing ground overlay...")
-            groundOverlay.remove()
-            Log.d(TAG, "Adding new ground overlay...")
-            groundOverlay = map!!.addGroundOverlay(GroundOverlayOptions()
-                    .position(ITBA_SE, 100f)
-                    .bearing(84f)
-                    .anchor(1f, 0f)
-                    .image(BitmapDescriptorFactory.fromResource(floorPlanResourceId(floorNumber!!)))
-            )
+        // Set floors and listen to floor changes
+        model.floors.value = building.floors
+        model.selectedFloorNumber.observe(this, Observer<Int> { floorNumber ->
+            switchOverlay(floorNumber!!)
+            switchMarkers(floorNumber)
         })
     }
 
@@ -101,7 +117,7 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
         val view = getView()
         if(view != null) {
             val fab = view.findViewById(R.id.fab) as FloatingActionButton
-            fab.setOnClickListener(this);
+            fab.setOnClickListener(this)
         }
     }
 
@@ -111,35 +127,51 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
             Before enabling the My Location layer, we MUST have been granted location permission by
             the user.
          */
-        if (ContextCompat.checkSelfPermission(this.context!!, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            map.isMyLocationEnabled = true
-            map.uiSettings.isMyLocationButtonEnabled = true
-//            map.isBuildingsEnabled = true
-//            map.isBuildingsEnabled = false
-            map.isIndoorEnabled = true
-            map.isTrafficEnabled = false
-            map.setOnMyLocationButtonClickListener(this)
-            map.setOnMyLocationClickListener(this)
-            map.setOnIndoorStateChangeListener(this)
-            map.uiSettings.isIndoorLevelPickerEnabled = true
-            map.mapType = GoogleMap.MAP_TYPE_NORMAL
-
-            // TODO set these based on buildingId
-            map.moveCamera(CameraUpdateFactory.newCameraPosition((CameraPosition(ITBA, 18f, 0f, 0f))))
-            groundOverlay = map.addGroundOverlay(GroundOverlayOptions()
-                    .position(ITBA_SE, 100f)
-                    .bearing(84f)
-                    .anchor(1f, 0f)
-                    .image(BitmapDescriptorFactory.fromResource(floorPlanResourceId(1)))
-//                    .anchor(0f, 0f)
-            )
-        } else {
+        if (ContextCompat.checkSelfPermission(this.context!!, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // Show rationale and request permission.
             Logger.w("Location permission not granted, requesting")
             ActivityCompat.requestPermissions(this.activity!!,
                     arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                     RequestFineLocationPermission)
+            return
+        }
+
+        // Configure map
+        map.isMyLocationEnabled = true
+        map.uiSettings.isMyLocationButtonEnabled = true
+//            map.isBuildingsEnabled = true
+//            map.isBuildingsEnabled = false
+        map.isIndoorEnabled = true
+        map.isTrafficEnabled = false
+        map.setOnMyLocationButtonClickListener(this)
+        map.setOnMyLocationClickListener(this)
+        map.setOnIndoorStateChangeListener(this)
+        map.uiSettings.isIndoorLevelPickerEnabled = true
+        map.mapType = GoogleMap.MAP_TYPE_NORMAL
+
+        // Start map: Move camera to starting position, set default floor number (this will trigger overlay and marker updates)
+        map.moveCamera(CameraUpdateFactory.newCameraPosition((CameraPosition(buildingLatLng(building), building.zoom!!.toFloat(), 0f, 0f))))
+        model.selectedFloorNumber.value = building.getDefaultFloor().number!!
+
+        // Query existing samples and draw them on the map
+        samplesClient = ApiSingleton.getInstance(context!!).defaultRetrofitInstance.create(SamplesClient::class.java)
+        samplesDisposable = samplesClient
+                .list(building._id!!)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnSubscribe { Log.d(ar.edu.itba.spi.calibracion.utils.TAG, "GET /buildings/${building._id}/samples") }
+                .subscribe(
+                        { result -> run {
+                                samples.addAll(result)
+                                mapSamplesToMarkers(samples)
+                            }
+                        },
+                        { error -> Log.e(ar.edu.itba.spi.calibracion.utils.TAG, "Error getting samples: ${error.message}") }
+                )
+        // React to marker clicks
+        map.setOnMarkerClickListener { marker ->
+            Log.d(TAG, "Tapped on marker with ${(marker.tag as Sample)}")
+            false // Return false to indicate we have not consumed the event and default behavior should continue
         }
     }
 
@@ -165,13 +197,81 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
         if (context is OnFragmentInteractionListener) {
             listener = context
         } else {
-            throw RuntimeException(context.toString() + " must implement OnFragmentInteractionListener")
+            throw RuntimeException("$context must implement OnFragmentInteractionListener")
         }
     }
 
     override fun onDetach() {
         super.onDetach()
         listener = null
+    }
+
+    /**
+     * Map [Sample]s to Google Maps' markers, populating [markers] as appropriate. Set initial
+     * visibility of markers according to the selected floor.
+     */
+    private fun mapSamplesToMarkers(samples: Collection<Sample>) {
+        activity?.runOnUiThread {
+            samples.forEach { sample ->
+                val markerOptions = gMapsMarkerOptions(sample)
+                val marker = map!!.addMarker(markerOptions)
+                marker.tag = sample
+                val sampleFloorNumber = building.floors!!.find { f -> f._id == sample.floorId }!!.number!!
+                marker.isVisible = sampleFloorNumber == model.selectedFloorNumber.value
+                markers.getOrPut(sampleFloorNumber) {mutableListOf()}.add(marker)
+            }
+        }
+    }
+
+    /**
+     * Remove the current overlay, if any, and add the overlay of the specified floor number.
+     * Downloads the overlay image in the background if necessary, and creates Maps' Overlay when
+     * ready.
+     */
+    private fun switchOverlay(floorNumber: Int) {
+        if (model.isChangingOverlay.value!!) {
+            throw IllegalStateException("Already changing overlays, can't change overlays again")
+        }
+        model.isChangingOverlay.value = true
+        Log.d(TAG, "Removing ground overlay...")
+        activeGroundOverlay?.isVisible = false
+        if (!groundOverlays.containsKey(floorNumber)) {
+            Log.d(TAG, "Downloading ground overlay for floor #$floorNumber of ${building.name}...")
+            val downloadFuture = Glide
+                    .with(this)
+                    .asBitmap()
+                    .load(building.getFloorNumber(floorNumber)!!.overlay!!.url)
+                    .submit()
+            AsyncTask.execute {
+                val overlayBitmap = downloadFuture.get()
+                Log.d(TAG, "Overlay download complete!")
+                Log.d(TAG, "Adding new ground overlay...")
+                val overlayOptions = gMapsGroundOverlayOptions(building.getOverlayNumber(floorNumber), overlayBitmap)
+                activity?.runOnUiThread {
+                    activeGroundOverlay = map!!.addGroundOverlay(overlayOptions)
+                    groundOverlays[floorNumber] = activeGroundOverlay!!
+                    model.isChangingOverlay.value = false
+                }
+            }
+        } else {
+            Log.d(TAG, "Adding cached ground overlay")
+            activeGroundOverlay = groundOverlays[floorNumber]
+            activeGroundOverlay!!.isVisible = true
+            model.isChangingOverlay.value = false
+        }
+    }
+
+    /**
+     * Iterate over all markers and set visible only those in the specified floor number.
+     *
+     * @param floorNumber The floor number of markers to make visible. All other floors will hide
+     * their markers.
+     */
+    private fun switchMarkers(floorNumber: Int) {
+        markers.entries.forEach { entry ->
+            val visible = floorNumber == entry.key
+            entry.value.forEach { m -> m.isVisible = visible }
+        }
     }
 
     /**
@@ -195,15 +295,15 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
          * Use this factory method to create a new instance of
          * this mapFragment using the provided parameters.
          *
-         * @param buildingId ID of building to start focused on.
+         * @param building Building to start focused on.
          * @return A new instance of mapFragment MapFragment.
          */
         // TODO: Rename and change types and number of parameters
         @JvmStatic
-        fun newInstance(buildingId: String) =
+        fun newInstance(building: Building) =
                 MapFragment().apply {
                     arguments = Bundle().apply {
-                        putString(EXTRA_BUILDING_ID, buildingId)
+                        putSerializable(EXTRA_BUILDING, building)
                     }
                 }
     }
@@ -248,9 +348,14 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
      */
     private fun floorPlanResourceId(floorNum: Int): Int {
         return when (floorNum) {
-            1 -> R.drawable.pb
-            2 -> R.drawable.pb
-            3 -> R.drawable.pb
+            0 -> R.drawable.p0
+            1 -> R.drawable.p1
+            2 -> R.drawable.p2
+            3 -> R.drawable.p3
+            4 -> R.drawable.p4
+            5 -> R.drawable.p5
+            6 -> R.drawable.p6
+            7 -> R.drawable.p7
             else -> -1
         }
     }

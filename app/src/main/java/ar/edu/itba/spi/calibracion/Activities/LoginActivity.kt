@@ -12,9 +12,11 @@ import android.text.TextUtils
 import android.util.Log
 import android.view.View
 import ar.edu.itba.spi.calibracion.R
+import ar.edu.itba.spi.calibracion.api.ApiSingleton
+import ar.edu.itba.spi.calibracion.api.clients.BuildingsClient
 import ar.edu.itba.spi.calibracion.api.clients.PingClient
-import ar.edu.itba.spi.calibracion.api.defaultRetrofitInstance
 import ar.edu.itba.spi.calibracion.utils.TAG
+import com.bumptech.glide.Glide
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
@@ -30,7 +32,8 @@ class LoginActivity : AppCompatActivity() {
     private var mAuthTask: UserLoginTask? = null
 
     // Use Disposable for API calls so we can cancel pending requests on destroy
-    private var disposable: Disposable? = null
+    private var pingDisposable: Disposable? = null
+    private var buildingsDisposable: Disposable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,10 +41,10 @@ class LoginActivity : AppCompatActivity() {
 
         sign_in_button.setOnClickListener { attemptLogin() }
 
-        val retrofit = defaultRetrofitInstance
-        val client = retrofit.create(PingClient::class.java)
+        val retrofit = ApiSingleton.getInstance(this).defaultRetrofitInstance
+        val pingClient = retrofit.create(PingClient::class.java)
         // API call, observed, with before-launch task https://medium.com/@elye.project/kotlin-and-retrofit-2-tutorial-with-working-codes-333a4422a890
-        disposable = client
+        pingDisposable = pingClient
                 .ping()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -49,6 +52,30 @@ class LoginActivity : AppCompatActivity() {
                 .subscribe(
                     { result -> Log.d(TAG, result) },
                     { error -> Log.e(TAG, error.message) }
+                )
+
+        val buildingsClient = retrofit.create(BuildingsClient::class.java)
+        buildingsDisposable = buildingsClient
+                .list()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnSubscribe { Log.d(TAG, "GET /buildings") }
+                .subscribe(
+                        { result -> run {
+                            val a = Glide
+                                    .with(this)
+                                    .asBitmap()
+                                    .load(result[0].floors!![0].overlay!!.url)
+                                    .submit()
+                            Log.d(TAG, "Downloading image from ${result[0].floors!![0].overlay!!.url}")
+                            AsyncTask.execute {
+                                a.get()
+                                Log.d(TAG, "Image download complete!")
+                            }
+                            Log.d(TAG, result.map { b -> b.toString()}.reduce { acc: String, s: String -> "$acc,$s" })
+                            }
+                        },
+                        { error -> Log.e(TAG, error.message) }
                 )
     }
 
@@ -163,7 +190,7 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        disposable?.dispose()
+        pingDisposable?.dispose()
     }
 
     /**
