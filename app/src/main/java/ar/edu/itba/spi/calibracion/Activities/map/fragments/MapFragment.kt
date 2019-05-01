@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.net.Uri
@@ -18,12 +19,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import ar.edu.itba.spi.calibracion.Activities.BuildingSelectorActivity
 import ar.edu.itba.spi.calibracion.Activities.map.EXTRA_BUILDING_ID
 import ar.edu.itba.spi.calibracion.utils.TAG
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.*
 import com.orhanobut.logger.Logger
 import ar.edu.itba.spi.calibracion.Activities.map.MapViewModel
+import ar.edu.itba.spi.calibracion.Activities.scan.ScanActivity
 import ar.edu.itba.spi.calibracion.R
 
 /**
@@ -211,7 +214,9 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
                 map?.let {
                     val target = it.cameraPosition.target
                     Logger.i(target.latitude.toString())
-                    Toast.makeText(this.context, "Calibration Submited", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this.context, "Calibrating", Toast.LENGTH_LONG).show()
+                    startActivity(Intent(context, ScanActivity::class.java))
+
                 }
             }
         }
