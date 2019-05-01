@@ -20,9 +20,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import ar.edu.itba.spi.calibracion.Activities.BuildingSelectorActivity
 import ar.edu.itba.spi.calibracion.Activities.map.EXTRA_BUILDING
 import ar.edu.itba.spi.calibracion.Activities.map.MapViewModel
+import ar.edu.itba.spi.calibracion.Activities.scan.ScanActivity
 import ar.edu.itba.spi.calibracion.R
 import ar.edu.itba.spi.calibracion.api.ApiSingleton
 import ar.edu.itba.spi.calibracion.api.clients.SamplesClient
@@ -42,8 +42,6 @@ import com.google.android.gms.maps.model.GroundOverlay
 import com.google.android.gms.maps.model.IndoorBuilding
 import com.google.android.gms.maps.model.Marker
 import com.orhanobut.logger.Logger
-import ar.edu.itba.spi.calibracion.Activities.map.MapViewModel
-import ar.edu.itba.spi.calibracion.Activities.scan.ScanActivity
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
@@ -341,22 +339,5 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
         // Return false so that we don't consume the event and the default behavior still occurs
         // (the camera animates to the user's current position).
         return false
-    }
-
-    /**
-     * Gets drawable resource ID given a floor number.
-     */
-    private fun floorPlanResourceId(floorNum: Int): Int {
-        return when (floorNum) {
-            0 -> R.drawable.p0
-            1 -> R.drawable.p1
-            2 -> R.drawable.p2
-            3 -> R.drawable.p3
-            4 -> R.drawable.p4
-            5 -> R.drawable.p5
-            6 -> R.drawable.p6
-            7 -> R.drawable.p7
-            else -> -1
-        }
     }
 }
