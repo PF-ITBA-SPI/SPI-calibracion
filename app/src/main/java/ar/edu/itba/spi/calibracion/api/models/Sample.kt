@@ -22,6 +22,13 @@ class Sample: Serializable {
     @SerializedName("fingerprint")
     val fingerprint = HashMap<String, Double>()
 
+    constructor(buildingId: String?, floorId: String?, latitude: Double?, longitude: Double?) {
+        this.buildingId = buildingId
+        this.floorId = floorId
+        this.latitude = latitude
+        this.longitude = longitude
+    }
+
     override fun toString(): String {
         return "Sample for floor $floorId of building $buildingId"
     }

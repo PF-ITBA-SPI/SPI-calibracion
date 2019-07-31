@@ -5,7 +5,6 @@ import android.annotation.SuppressLint
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.net.Uri
@@ -313,8 +312,7 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
                     val target = it.cameraPosition.target
                     Logger.i(target.latitude.toString())
                     Toast.makeText(this.context, "Calibrating", Toast.LENGTH_LONG).show()
-                    startActivity(Intent(context, ScanActivity::class.java))
-
+                    startActivity(ScanActivity.startIntent(activity!!, building._id!!, model.floors.value!![model.selectedFloorNumber.value!!]._id!!, target.latitude, target.longitude))
                 }
             }
         }

@@ -21,7 +21,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import ar.edu.itba.spi.calibracion.R
+import ar.edu.itba.spi.calibracion.api.ApiSingleton
+import ar.edu.itba.spi.calibracion.api.clients.SamplesClient
+import ar.edu.itba.spi.calibracion.api.models.Sample
 import ar.edu.itba.spi.calibracion.utils.TAG
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
 
 /**
  * A fragment which scans nearby WiFi networks.
@@ -33,16 +39,37 @@ import ar.edu.itba.spi.calibracion.utils.TAG
  */
 class ScanFragment : Fragment() {
     private lateinit var layout: ConstraintLayout
+    private lateinit  var samplesClient: SamplesClient
+    private var samplesDisposable: Disposable? = null
     private var mListener: OnFragmentInteractionListener? = null
     private var resultList = ArrayList<ScanResult>()
 
     private lateinit var wifiManager: WifiManager
+
+    private var buildingId: String? = null
+    private var floorId: String? = null
+    private var latitude: Double? = null
+    private var longitude: Double? = null
 
     private val wifiScanReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val success = intent.getBooleanExtra(WifiManager.EXTRA_RESULTS_UPDATED, false)
             if (success) {
                 Log.d(TAG, wifiManager.scanResults.toString())
+                samplesClient = ApiSingleton.getInstance(context).defaultRetrofitInstance.create(SamplesClient::class.java)
+                samplesDisposable = samplesClient
+                        .create(buildingId!!, Sample(buildingId, floorId, latitude, longitude))
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .doOnSubscribe { Log.d(TAG, "POSTing /buildings/$buildingId/samples") }
+                        .subscribe(
+                                { result -> run {
+                                    Log.i(TAG, "Result: $result")
+                                    activity!!.finish()
+                                }
+                                },
+                                { error -> Log.e(TAG, "Error POSTing samples: ${error.message}") }
+                        )
             } else {
                 Log.d(TAG, "Scan Failed")
             }
@@ -149,15 +176,15 @@ class ScanFragment : Fragment() {
          * Use this factory method to create a new instance of
          * this fragment using the provided parameters.
          *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
          * @return A new instance of fragment FloorSelectorFragment.
          */
         // TODO: Rename and change types and number of parameters
-        fun newInstance(): ScanFragment {
+        fun newInstance(buildingId: String, floorId: String, latitude: Double, longitude: Double): ScanFragment {
             val fragment = ScanFragment()
-            val args = Bundle()
-            fragment.arguments = args
+            fragment.buildingId = buildingId
+            fragment.floorId = floorId
+            fragment.latitude = latitude
+            fragment.longitude = longitude
             return fragment
         }
     }
