@@ -23,17 +23,32 @@ class Sample: Serializable {
     @SerializedName("fingerprint")
     val fingerprint = HashMap<String, Double>()
 
-    constructor(buildingId: String?, floorId: String?, latitude: Double?, longitude: Double?, scanResults: List<ScanResult>) {
+    @SerializedName("extra")
+    val extraData = HashMap<String, Any>()
+
+    constructor(buildingId: String, floorId: String, latitude: Double, longitude: Double, scanResults: List<ScanResult>) {
         this.buildingId = buildingId
         this.floorId = floorId
         this.latitude = latitude
         this.longitude = longitude
-        this.fingerprint.putAll(wifiResultToMap(scanResults))
+        scanResults.forEach { result ->
+            fingerprint[result.BSSID] = result.level.toDouble()
+            extraData[result.BSSID] = extraDataMap(result)
+        }
     }
 
-    public fun wifiResultToMap(scanResult: List<ScanResult>): Map<String, Double> {
-        val result = HashMap<String, Double>(scanResult.size)
-        scanResult.forEach { t -> result[t.BSSID] = t.level.toDouble() }
+    private fun extraDataMap(scanResult : ScanResult) : Map<String, Any> {
+        val result = HashMap<String, Any>()
+        result["SSID"] = scanResult.SSID
+        result["capabilities"] = scanResult.capabilities
+//        result["centerFreq0"] = scanResult.centerFreq0
+//        result["centerFreq1"] = scanResult.centerFreq1
+//        result["channelWidth"] = scanResult.channelWidth
+        result["frequency"] = scanResult.frequency
+//        result["is80211mcResponder"] = scanResult.is80211mcResponder
+//        result["isPasspointNetwork"] = scanResult.isPasspointNetwork
+//        result["operatorFriendlyName"] = scanResult.operatorFriendlyName
+//        result["venueName"] = scanResult.venueName
         return result
     }
 

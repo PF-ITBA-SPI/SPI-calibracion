@@ -58,17 +58,21 @@ class ScanFragment : Fragment() {
                 Log.d(TAG, wifiManager.scanResults.toString())
                 samplesClient = ApiSingleton.getInstance(context).defaultRetrofitInstance.create(SamplesClient::class.java)
                 samplesDisposable = samplesClient
-                        .create(buildingId!!, Sample(buildingId, floorId, latitude, longitude, wifiManager.scanResults))
+                        .create(buildingId!!, Sample(buildingId!!, floorId!!, latitude!!, longitude!!, wifiManager.scanResults))
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .doOnSubscribe { Log.d(TAG, "POSTing /buildings/$buildingId/samples") }
                         .subscribe(
                                 { result -> run {
                                     Log.i(TAG, "Result: $result")
-                                    activity!!.finish()
+                                    activity!!.onBackPressed()
                                 }
                                 },
-                                { error -> Log.e(TAG, "Error POSTing samples: ${error.message}") }
+                                { error ->
+                                    Log.e(TAG, "Error POSTing samples: ${error.message}")
+                                    Log.e(TAG, error.toString())
+                                    Log.e(TAG, Log.getStackTraceString(error))
+                                }
                         )
             } else {
                 Log.d(TAG, "Scan Failed")
@@ -97,14 +101,14 @@ class ScanFragment : Fragment() {
         Log.d(TAG, "CHECKING PERMISSIONS")
         if (ContextCompat.checkSelfPermission(activity as Activity, Manifest.permission.CHANGE_WIFI_STATE)
                 == PackageManager.PERMISSION_GRANTED) {
-            return true;
+            return true
         } else {
             Log.d(TAG, "ASKING FOR PERMISSIONS")
             ActivityCompat.requestPermissions(this.activity!!,
                     arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                     MY_PERMISSIONS_REQUEST_CHANGE_WIFI_STATE)
         }
-        return false;
+        return false
     }
 
     override fun onRequestPermissionsResult(requestCode: Int,
@@ -146,7 +150,7 @@ class ScanFragment : Fragment() {
         if (context is OnFragmentInteractionListener) {
             mListener = context
         } else {
-            throw RuntimeException(context!!.toString() + " must implement OnFragmentInteractionListener")
+            throw RuntimeException("$context must implement OnFragmentInteractionListener")
         }
         startScanning()
     }

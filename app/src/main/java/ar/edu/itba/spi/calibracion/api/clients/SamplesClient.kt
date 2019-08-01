@@ -9,7 +9,7 @@ interface SamplesClient {
     fun list(@Path("buildingId") buildingId: String): Observable<List<Sample>>
 
     @POST("/buildings/{buildingId}/samples")
-    fun create(@Path("buildingId") buildingId: String, @Body sample: Sample): Observable<Int>
+    fun create(@Path("buildingId") buildingId: String, @Body sample: Sample): Observable<Sample>
 
     @DELETE("/buildings/{buildingId}/samples/{sampleId}")
     fun delete(@Path("buildingId") buildingId: String, @Path("sampleId") sampleId: String): Observable<Int>
