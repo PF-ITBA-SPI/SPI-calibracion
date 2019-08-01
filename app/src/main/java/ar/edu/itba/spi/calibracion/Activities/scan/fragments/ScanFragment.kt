@@ -58,7 +58,7 @@ class ScanFragment : Fragment() {
                 Log.d(TAG, wifiManager.scanResults.toString())
                 samplesClient = ApiSingleton.getInstance(context).defaultRetrofitInstance.create(SamplesClient::class.java)
                 samplesDisposable = samplesClient
-                        .create(buildingId!!, Sample(buildingId, floorId, latitude, longitude))
+                        .create(buildingId!!, Sample(buildingId, floorId, latitude, longitude, wifiManager.scanResults))
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .doOnSubscribe { Log.d(TAG, "POSTing /buildings/$buildingId/samples") }
