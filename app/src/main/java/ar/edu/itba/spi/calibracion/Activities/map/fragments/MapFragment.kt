@@ -6,6 +6,8 @@ import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Color
+import android.graphics.Typeface
 import android.location.Location
 import android.net.Uri
 import android.os.AsyncTask
@@ -15,9 +17,12 @@ import android.support.v4.app.ActivityCompat
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
 import android.util.Log
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import ar.edu.itba.spi.calibracion.Activities.map.EXTRA_BUILDING
 import ar.edu.itba.spi.calibracion.Activities.map.MapViewModel
@@ -156,15 +161,43 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
                 .list(building._id!!)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnSubscribe { Log.d(ar.edu.itba.spi.calibracion.utils.TAG, "GET /buildings/${building._id}/samples") }
+                .doOnSubscribe { Log.d(TAG, "GET /buildings/${building._id}/samples") }
                 .subscribe(
                         { result -> run {
                                 samples.addAll(result)
                                 mapSamplesToMarkers(samples)
                             }
                         },
-                        { error -> Log.e(ar.edu.itba.spi.calibracion.utils.TAG, "Error getting samples: ${error.message}") }
+                        { error -> Log.e(TAG, "Error getting samples: ${error.message}") }
                 )
+
+        // Set custom info window layout, adapted from https://stackoverflow.com/a/31629308/2333689
+        map.setInfoWindowAdapter(object : GoogleMap.InfoWindowAdapter {
+            override fun getInfoContents(marker: Marker): View {
+                val info = LinearLayout(context)
+                info.orientation = LinearLayout.VERTICAL
+
+                val title = TextView(context)
+                title.setTextColor(Color.BLACK)
+                title.gravity = Gravity.CENTER
+                title.setTypeface(null, Typeface.BOLD)
+                title.text = marker.title
+
+                val snippet = TextView(context)
+                snippet.setTextColor(Color.GRAY)
+                snippet.text = marker.snippet
+
+                info.addView(title)
+                info.addView(snippet)
+
+                return info
+            }
+
+            override fun getInfoWindow(p0: Marker?): View? {
+                return null // Force using info contents
+            }
+        })
+
         // React to marker clicks
         map.setOnMarkerClickListener { marker ->
             Log.d(TAG, "Tapped on marker with ${(marker.tag as Sample)}")
