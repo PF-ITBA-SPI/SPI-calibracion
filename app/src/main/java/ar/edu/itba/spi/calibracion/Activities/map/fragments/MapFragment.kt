@@ -21,6 +21,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import ar.edu.itba.spi.calibracion.Activities.map.EXTRA_BUILDING
 import ar.edu.itba.spi.calibracion.Activities.map.MapViewModel
+import ar.edu.itba.spi.calibracion.Activities.scan.ScanActivity
 import ar.edu.itba.spi.calibracion.R
 import ar.edu.itba.spi.calibracion.api.ApiSingleton
 import ar.edu.itba.spi.calibracion.api.clients.SamplesClient
@@ -310,7 +311,8 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
                 map?.let {
                     val target = it.cameraPosition.target
                     Logger.i(target.latitude.toString())
-                    Toast.makeText(this.context, "Calibration Submited", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this.context, "Calibrating", Toast.LENGTH_LONG).show()
+                    startActivity(ScanActivity.startIntent(activity!!, building._id!!, model.floors.value!![model.selectedFloorNumber.value!!]._id!!, target.latitude, target.longitude))
                 }
             }
         }
@@ -335,22 +337,5 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
         // Return false so that we don't consume the event and the default behavior still occurs
         // (the camera animates to the user's current position).
         return false
-    }
-
-    /**
-     * Gets drawable resource ID given a floor number.
-     */
-    private fun floorPlanResourceId(floorNum: Int): Int {
-        return when (floorNum) {
-            0 -> R.drawable.p0
-            1 -> R.drawable.p1
-            2 -> R.drawable.p2
-            3 -> R.drawable.p3
-            4 -> R.drawable.p4
-            5 -> R.drawable.p5
-            6 -> R.drawable.p6
-            7 -> R.drawable.p7
-            else -> -1
-        }
     }
 }
