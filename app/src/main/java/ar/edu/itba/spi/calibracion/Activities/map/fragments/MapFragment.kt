@@ -17,11 +17,11 @@ import android.support.v4.app.ActivityCompat
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
 import android.util.Log
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
+import android.widget.ImageView
+import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
 import ar.edu.itba.spi.calibracion.Activities.map.EXTRA_BUILDING
@@ -173,28 +173,65 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
 
         // Set custom info window layout, adapted from https://stackoverflow.com/a/31629308/2333689
         map.setInfoWindowAdapter(object : GoogleMap.InfoWindowAdapter {
-            override fun getInfoContents(marker: Marker): View {
-                val info = LinearLayout(context)
-                info.orientation = LinearLayout.VERTICAL
+            override fun getInfoContents(marker: Marker): View? {
+//                val info = LinearLayout(context)
+//                info.orientation = LinearLayout.VERTICAL
+//
+//                val title = TextView(context)
+//                title.setTextColor(Color.BLACK)
+//                title.gravity = Gravity.CENTER
+//                title.setTypeface(null, Typeface.BOLD)
+//                title.text = marker.title
+//
+//                val snippet = TextView(context)
+//                snippet.setTextColor(Color.GRAY)
+//                snippet.text = marker.snippet
+//
+//                info.addView(title)
+//                info.addView(snippet)
 
+                val info = RelativeLayout(context)
                 val title = TextView(context)
                 title.setTextColor(Color.BLACK)
-                title.gravity = Gravity.CENTER
                 title.setTypeface(null, Typeface.BOLD)
                 title.text = marker.title
+                val titleParams = RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT)
+                titleParams.addRule(RelativeLayout.ALIGN_PARENT_TOP)
+                titleParams.addRule(RelativeLayout.CENTER_HORIZONTAL)
+                title.layoutParams = titleParams
 
                 val snippet = TextView(context)
                 snippet.setTextColor(Color.GRAY)
                 snippet.text = marker.snippet
+                val snippetParams = RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT)
+                snippetParams.addRule(RelativeLayout.ALIGN_TOP, title.id)
+                snippetParams.addRule(RelativeLayout.CENTER_HORIZONTAL)
+                snippetParams.topMargin = 50
+                snippet.layoutParams = snippetParams
+
+                val deleteButton = ImageView(context)
+                deleteButton.setImageResource(R.drawable.ic_close_black_24dp)
+                val deleteButtonParams = RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT)
+                deleteButtonParams.addRule(RelativeLayout.ALIGN_PARENT_END)
+                deleteButton.layoutParams = deleteButtonParams
+                deleteButton.setOnClickListener { Log.d(TAG, "Clicked delete button") }
+
 
                 info.addView(title)
                 info.addView(snippet)
+                info.addView(deleteButton)
 
                 return info
+
+//                val result = layoutInflater.inflate(R.layout.scan_info_window, null)
+//                val result = View.inflate(context, R.layout.scan_info_window, null)
+//                result.title.text = marker.title
+//                result.content.text = marker.snippet
+//                return result
             }
 
-            override fun getInfoWindow(p0: Marker?): View? {
-                return null // Force using info contents
+            override fun getInfoWindow(marker: Marker): View? {
+                return null
             }
         })
 
