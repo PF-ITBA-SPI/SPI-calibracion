@@ -31,7 +31,7 @@ class SampleDetailActivity : AppCompatActivity() {
         setContentView(R.layout.activity_sample_detail)
         sample = intent.extras!![EXTRA_SAMPLE] as Sample
         building = intent.extras!![EXTRA_BUILDING] as Building
-        sampleTitle.text = "${sample.fingerprint.size} APs" // TODO say floor number
+        sampleTitle.text = title(sample, building)
         fillTable(sample, content)
 
         samplesClient = ApiSingleton.getInstance(this).defaultRetrofitInstance.create(SamplesClient::class.java)
@@ -53,6 +53,13 @@ class SampleDetailActivity : AppCompatActivity() {
                             }
                     )
         }
+    }
+
+    private fun title(sample: Sample, building: Building): String {
+        val sampleFloor = building.floors!!.find { f -> f._id == sample.floorId }!!
+        val numAps = sample.fingerprint.size
+        val s = if (numAps == 1) ""  else "s"
+        return "${building.name}, Floor ${sampleFloor.name}, $numAps AP$s"
     }
 
     /**
