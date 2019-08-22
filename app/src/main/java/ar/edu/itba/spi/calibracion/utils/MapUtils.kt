@@ -27,27 +27,4 @@ fun gMapsMarkerOptions(sample: Sample): MarkerOptions {
             .position(LatLng(sample.latitude!!, sample.longitude!!))
             .visible(true)
             .draggable(false)
-            .title("${sample.fingerprint.size} APs")
-            .snippet(sampleSnippet(sample))
-}
-
-private fun sampleSnippet(sample: Sample): String {
-    val result = StringBuilder()
-    sample.fingerprint.entries.forEach { (key, value) ->
-        result.append(key)
-        var ssid = "?"
-        if (sample.extraData.containsKey(key)) {
-            val ssid2 = (sample.extraData[key] as Map<String, Any>)["SSID"]
-            if (ssid2 != null && ssid2 != "") {
-                ssid = ssid2 as String
-            }
-        }
-        result.append(" (")
-                .append(ssid)
-                .append(") ")
-                .append(value)
-                .append("dBm")
-                .append("\n")
-    }
-    return result.trimEnd('\n').toString()
 }
