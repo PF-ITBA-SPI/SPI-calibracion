@@ -24,6 +24,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import ar.edu.itba.spi.calibracion.Activities.SampleDetailActivity
 import ar.edu.itba.spi.calibracion.Activities.map.EXTRA_BUILDING
 import ar.edu.itba.spi.calibracion.Activities.map.MapViewModel
 import ar.edu.itba.spi.calibracion.Activities.scan.ScanActivity
@@ -200,8 +201,10 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
 
         // React to marker clicks
         map.setOnMarkerClickListener { marker ->
-            Log.d(TAG, "Tapped on marker with ${(marker.tag as Sample)}")
-            false // Return false to indicate we have not consumed the event and default behavior should continue
+            startActivity(SampleDetailActivity.startIntent(context!!, marker.tag as Sample, building))
+            true // Return true to indicate we have consumed the event and nobody else should receive this event
+//            Log.d(TAG, "Tapped on marker with ${(marker.tag as Sample)}")
+//            false // Return false to indicate we have not consumed the event and default behavior should continue
         }
     }
 

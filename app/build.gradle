@@ -69,8 +69,8 @@ dependencies {
     implementation "com.squareup.retrofit2:adapter-rxjava2:$retrofit_version"
 
     //JSON parser adapter for retrofit
-    compile 'com.google.code.gson:gson:2.8.2'
-    compile 'com.squareup.retrofit2:converter-gson:2.0.2'
+    implementation 'com.google.code.gson:gson:2.8.2'
+    implementation 'com.squareup.retrofit2:converter-gson:2.0.2'
     // Scalars parser (string, etc.)
     implementation "com.squareup.retrofit2:converter-scalars:$retrofit_version"
 
