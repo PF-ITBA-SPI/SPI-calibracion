@@ -43,6 +43,7 @@ class ScanFragment : Fragment() {
     private var samplesDisposable: Disposable? = null
     private var mListener: OnFragmentInteractionListener? = null
     private var resultList = ArrayList<ScanResult>()
+    private var handler = Handler()
 
     private lateinit var wifiManager: WifiManager
 
@@ -138,7 +139,7 @@ class ScanFragment : Fragment() {
             Log.d(TAG, "START SCAN")
             wifiManager.startScan()
         }
-        Handler().postDelayed({
+        handler.postDelayed({
             startScanning()
         }, 30000)
     }
@@ -157,6 +158,8 @@ class ScanFragment : Fragment() {
 
     override fun onDetach() {
         super.onDetach()
+        context?.unregisterReceiver(wifiScanReceiver)
+        handler.removeCallbacksAndMessages(null)
         mListener = null
     }
 
