@@ -1,7 +1,7 @@
 package ar.edu.itba.spi.calibracion.Activities.map
 
 import android.net.Uri
-import android.support.v4.app.Fragment
+import androidx.fragment.app.Fragment
 import android.util.Log
 import ar.edu.itba.spi.calibracion.Activities.SingleFragmentActivity
 import ar.edu.itba.spi.calibracion.Activities.map.fragments.MapFragment

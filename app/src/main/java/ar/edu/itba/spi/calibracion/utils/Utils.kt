@@ -1,7 +1,7 @@
 package ar.edu.itba.spi.calibracion.utils
 
 import android.app.Activity
-import android.support.v4.widget.SwipeRefreshLayout
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 
 /**
  * Created by julianrodrigueznicastro on 28/11/2018.
