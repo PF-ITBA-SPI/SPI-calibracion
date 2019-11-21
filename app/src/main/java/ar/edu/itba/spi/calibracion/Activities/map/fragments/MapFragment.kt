@@ -2,23 +2,23 @@ package ar.edu.itba.spi.calibracion.Activities.map.fragments
 
 import android.Manifest
 import android.annotation.SuppressLint
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import android.net.Uri
 import android.os.AsyncTask
+import android.os.Build
 import android.os.Bundle
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import androidx.core.app.ActivityCompat
-import androidx.fragment.app.Fragment
-import androidx.core.content.ContextCompat
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import ar.edu.itba.spi.calibracion.Activities.SampleDetailActivity
 import ar.edu.itba.spi.calibracion.Activities.map.EXTRA_BUILDING
 import ar.edu.itba.spi.calibracion.Activities.map.MapViewModel
@@ -41,6 +41,7 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.GroundOverlay
 import com.google.android.gms.maps.model.IndoorBuilding
 import com.google.android.gms.maps.model.Marker
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.orhanobut.logger.Logger
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
@@ -236,10 +237,16 @@ class MapFragment : Fragment(), GoogleMap.OnMyLocationButtonClickListener, Googl
         activeGroundOverlay?.isVisible = false
         if (!groundOverlays.containsKey(floorNumber)) {
             Log.d(TAG, "Downloading ground overlay for floor #$floorNumber of ${building.name}...")
+            var overlayUrl = building.getFloorNumber(floorNumber)!!.overlay!!.url!!
+            // Use a half-resolution image for older Android because big images go over memory limit
+            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP_MR1) {
+                overlayUrl = overlayUrl.replace(Regex("/upload/v(\\d+)/"), "/upload/w_0.5,c_scale/v$1/");
+            }
+
             val downloadFuture = Glide
                     .with(this)
                     .asBitmap()
-                    .load(building.getFloorNumber(floorNumber)!!.overlay!!.url)
+                    .load(overlayUrl)
                     .submit()
             AsyncTask.execute {
                 val overlayBitmap = downloadFuture.get()
