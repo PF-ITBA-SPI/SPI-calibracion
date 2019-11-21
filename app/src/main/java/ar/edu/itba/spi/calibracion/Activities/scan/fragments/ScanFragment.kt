@@ -44,7 +44,7 @@ class ScanFragment : Fragment() {
     private var mListener: OnFragmentInteractionListener? = null
     private var resultList = ArrayList<ScanResult>()
     private var handler = Handler()
-    private val WIFI_FREQUENCY: Long = if (android.os.Build.VERSION.SDK_INT >= 28) 30000 else 5000
+    private val WIFI_SCAN_FREQUENCY: Long = if (android.os.Build.VERSION.SDK_INT >= 28) 30000 else 5000
 
     private lateinit var wifiManager: WifiManager
 
@@ -142,7 +142,7 @@ class ScanFragment : Fragment() {
         }
         handler.postDelayed({
             startScanning()
-        }, WIFI_FREQUENCY)
+        }, WIFI_SCAN_FREQUENCY)
     }
 
     override fun onAttach(context: Context) {
