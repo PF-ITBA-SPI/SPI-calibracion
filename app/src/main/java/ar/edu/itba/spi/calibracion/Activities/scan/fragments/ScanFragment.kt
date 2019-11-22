@@ -55,7 +55,7 @@ class ScanFragment : Fragment() {
 
     private val wifiScanReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            val success = intent.getBooleanExtra(WifiManager.EXTRA_RESULTS_UPDATED, false)
+            val success = intent.getBooleanExtra(WifiManager.EXTRA_RESULTS_UPDATED, false) || !wifiManager.scanResults.isNullOrEmpty()
             if (success) {
                 Log.d(TAG, wifiManager.scanResults.toString())
                 samplesClient = ApiSingleton.getInstance(context).defaultRetrofitInstance.create(SamplesClient::class.java)
